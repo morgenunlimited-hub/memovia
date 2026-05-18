@@ -5823,3 +5823,67 @@ async function initApp() {
     }
   }
 })();
+
+// ===========================================================================
+// EXPLIZITE WINDOW-BINDINGS
+// In manchen Browsern werden top-level Funktionen nicht automatisch an window
+// gebunden. Hier erzwingen wir das damit data-action Handler sie sicher finden.
+// ===========================================================================
+window.authSubmit = authSubmit;
+window.authToggleMode = authToggleMode;
+window.authResetEverything = authResetEverything;
+window.authSkipLogin = authSkipLogin;
+window.authLogout = authLogout;
+window.authRegister = authRegister;
+window.authLogin = authLogin;
+
+// ===========================================================================
+// DIREKTER CLICK-LISTENER für Auth-Buttons (Fallback)
+// Wird hier in app.js eingebaut, falls der Inline-Handler aus HTML nicht greift.
+// ===========================================================================
+(function attachAuthClickHandlers() {
+  function attach() {
+    // Direkt an jeden Auth-Button binden — robuster als data-action
+    const btn1 = document.getElementById('authSubmit');
+    if (btn1 && !btn1._hasHandler) {
+      btn1._hasHandler = true;
+      btn1.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('[Memovia] Submit-Button geklickt');
+        authSubmit();
+      });
+    }
+    const btn2 = document.getElementById('authToggleMode');
+    if (btn2 && !btn2._hasHandler) {
+      btn2._hasHandler = true;
+      btn2.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('[Memovia] Toggle-Button geklickt');
+        authToggleMode();
+      });
+    }
+    // Skip + Reset Buttons über data-action
+    document.querySelectorAll('[data-action]').forEach(function(btn) {
+      if (btn._hasHandler) return;
+      btn._hasHandler = true;
+      btn.addEventListener('click', function(e) {
+        const action = btn.getAttribute('data-action');
+        console.log('[Memovia] data-action geklickt:', action);
+        e.preventDefault();
+        if (action === 'submit') authSubmit();
+        else if (action === 'toggle') authToggleMode();
+        else if (action === 'reset') authResetEverything();
+        else if (action === 'skip') authSkipLogin();
+        else if (action === 'logout') authLogout();
+      });
+    });
+  }
+  // Sofort versuchen, plus nach DOMContentLoaded, plus mit kleiner Verzögerung
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attach);
+  } else {
+    attach();
+  }
+  setTimeout(attach, 100);
+  setTimeout(attach, 500);
+})();
