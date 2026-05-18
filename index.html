@@ -531,12 +531,12 @@
         <input type="password" id="authPassword" autocomplete="current-password" placeholder="Mindestens 6 Zeichen" required>
       </div>
       <div class="auth-error" id="authError"></div>
-      <button class="auth-btn-primary" type="button" id="authSubmit" onclick="authSubmit()">Anmelden</button>
+      <button class="auth-btn-primary" type="button" id="authSubmit" data-action="submit">Anmelden</button>
     </form>
 
     <div class="auth-divider"><span>oder</span></div>
 
-    <button class="auth-btn-secondary" id="authToggleMode" onclick="authToggleMode()">
+    <button class="auth-btn-secondary" id="authToggleMode" data-action="toggle">
       Noch kein Konto? <strong>Jetzt registrieren</strong>
     </button>
 
@@ -546,8 +546,8 @@
       <summary style="cursor: pointer; text-align: center;">Probleme beim Anmelden?</summary>
       <div style="margin-top: 10px; padding: 10px; background: var(--bg); border-radius: 8px;">
         <p style="margin-bottom: 8px;">Falls die Anmeldung hängt, hier zwei Notfall-Optionen:</p>
-        <button onclick="authResetEverything()" style="width: 100%; padding: 8px; margin-bottom: 6px; background: transparent; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; cursor: pointer;">🗑 Alle Daten zurücksetzen</button>
-        <button onclick="authSkipLogin()" style="width: 100%; padding: 8px; background: transparent; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; cursor: pointer;">▶ Ohne Anmeldung fortfahren (Gastmodus)</button>
+        <button data-action="reset" style="width: 100%; padding: 8px; margin-bottom: 6px; background: transparent; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; cursor: pointer;">🗑 Alle Daten zurücksetzen</button>
+        <button data-action="skip" style="width: 100%; padding: 8px; background: transparent; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; cursor: pointer;">▶ Ohne Anmeldung fortfahren (Gastmodus)</button>
       </div>
     </details>
   </div>
@@ -569,7 +569,7 @@
     </div>
     <div class="account-info">
       <span class="account-name" id="accountName">Karl</span>
-      <button class="logout-btn" onclick="authLogout()">Abmelden</button>
+      <button class="logout-btn" data-action="logout">Abmelden</button>
     </div>
   </header>
 
@@ -820,7 +820,56 @@
     </div>
   </main>
 </div>
-<script src="images.js?v=20260518c"></script>
-<script src="app.js?v=20260518c"></script>
+<script src="images.js?v=20260518d"></script>
+<script src="app.js?v=20260518d"></script>
+
+<!-- Notfall-Auth-Handler: registriert Click-Listener für Auth-Buttons.
+     Funktioniert auch wenn app.js gerade noch lädt. -->
+<script>
+(function() {
+  function ready(fn) {
+    if (document.readyState !== 'loading') fn();
+    else document.addEventListener('DOMContentLoaded', fn);
+  }
+
+  ready(function() {
+    // Auth-Buttons mit data-action verbinden
+    document.body.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      var action = btn.getAttribute('data-action');
+
+      try {
+        if (action === 'submit' && typeof authSubmit === 'function') {
+          authSubmit();
+        } else if (action === 'toggle' && typeof authToggleMode === 'function') {
+          authToggleMode();
+        } else if (action === 'reset' && typeof authResetEverything === 'function') {
+          authResetEverything();
+        } else if (action === 'skip' && typeof authSkipLogin === 'function') {
+          authSkipLogin();
+        } else if (action === 'logout' && typeof authLogout === 'function') {
+          authLogout();
+        } else {
+          // Funktion nicht da → emergency reset
+          alert('Die App konnte nicht vollständig geladen werden. Bitte Seite neu laden (Cmd+R) oder den Browser-Cache leeren.');
+        }
+      } catch(err) {
+        alert('Fehler: ' + (err.message || err));
+        console.error('Click-Handler Fehler:', err);
+      }
+    });
+
+    // Form-Submit per Enter abfangen
+    var form = document.getElementById('authForm');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (typeof authSubmit === 'function') authSubmit();
+      });
+    }
+  });
+})();
+</script>
 </body>
 </html>
