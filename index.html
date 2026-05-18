@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#2a4a6a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Memovia — Erinnern. Begleiten. Verbinden.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5efe6; --bg-card: #fbf6ee; --ink: #2a2520; --ink-soft: #6b5e52;
+    --accent: #c8553d; --accent-soft: #e8b4a4; --green: #588157; --green-soft: #d4e3cf;
+    --gold: #d4a017; --line: #e0d6c7;
+    --shadow: 0 1px 0 rgba(42,37,32,.04), 0 8px 32px -12px rgba(42,37,32,.18);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; height: 100dvh; overflow-x: hidden; max-width: 100vw; margin: 0; padding: 0; }
+  html { overscroll-behavior: none; background: #2a4a6a; }
+  body { font-family: 'Outfit', sans-serif; background: #2a4a6a; color: var(--ink); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; overscroll-behavior: none; -webkit-text-size-adjust: 100%; touch-action: pan-y; min-height: 100vh; min-height: 100dvh; }
+  /* Wenn die App eingeloggt ist, kommt der cremefarbene Hintergrund vom mainApp-Container */
+  #mainApp { background: var(--bg); min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+  body::before { content: ''; position: fixed; inset: 0; background-image: radial-gradient(circle at 20% 10%, rgba(212,160,23,.06), transparent 40%), radial-gradient(circle at 80% 80%, rgba(200,85,61,.05), transparent 40%); pointer-events: none; z-index: 0; }
+  .app { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; position: relative; z-index: 1; }
+  header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-logo { height: 44px; width: auto; display: block; }
+  .home-hero { text-align: center; margin: 12px 0 24px; }
+  .home-logo { width: 220px; max-width: 70%; height: auto; display: block; margin: 0 auto; }
+  @media (max-width: 540px) {
+    .brand-logo { height: 32px; }
+    .home-logo { width: 180px; }
+  }
+  .brand-tagline { font-size: 13px; color: var(--ink-soft); }
+
+  /* === Auth-Screen === */
+  .auth-screen { 
+    position: fixed; 
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: center; 
+    padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+    background: linear-gradient(135deg, #2a4a6a, #4a3a6a); 
+    z-index: 9999; 
+    overflow: hidden;
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+  }
+  .auth-screen::before {
+    /* Hintergrund-Erweiterung damit beim iOS-Bounce keine weiße Fläche zu sehen ist */
+    content: '';
+    position: absolute;
+    top: -100px; left: 0; right: 0; bottom: -100px;
+    background: inherit;
+    z-index: -1;
+  }
+  .auth-card-wrapper { width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .auth-card { background: var(--bg-card); border-radius: 24px; padding: 32px 24px 20px; width: 100%; box-shadow: 0 24px 60px rgba(0,0,0,.3); text-align: center; }
+  .auth-logo { width: 120px; height: auto; margin: 0 auto 16px; display: block; }
+  .auth-title { font-family: 'Fraunces', serif; font-size: 28px; margin-bottom: 6px; color: var(--ink); }
+  .auth-subtitle { color: var(--ink-soft); font-size: 14px; margin-bottom: 24px; }
+  .auth-field { text-align: left; margin-bottom: 14px; }
+  .auth-field label { display: block; font-size: 13px; color: var(--ink-soft); font-weight: 500; margin-bottom: 4px; }
+  .auth-field input { width: 100%; padding: 12px 14px; font-size: 16px; font-family: inherit; border: 2px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink); }
+  .auth-field input:focus { outline: none; border-color: var(--accent); }
+  .auth-error { color: #b03030; font-size: 13px; min-height: 18px; margin: 8px 0; }
+  .auth-btn-primary { width: 100%; padding: 14px; background: var(--ink); color: var(--bg); border: none; border-radius: 12px; font-size: 16px; font-family: inherit; font-weight: 600; cursor: pointer; transition: transform .15s; margin-top: 4px; }
+  .auth-btn-primary:hover { transform: translateY(-1px); }
+  .auth-btn-secondary { width: 100%; padding: 12px; background: transparent; color: var(--ink); border: 2px solid var(--line); border-radius: 12px; font-size: 14px; font-family: inherit; cursor: pointer; }
+  .auth-btn-secondary strong { color: var(--accent); }
+  .auth-divider { display: flex; align-items: center; margin: 18px 0; color: var(--ink-soft); font-size: 12px; }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .auth-divider span { padding: 0 12px; }
+  .auth-note { font-size: 11px; color: var(--ink-soft); margin-top: 16px; line-height: 1.4; }
+
+  /* Account-Anzeige im Header */
+  .account-info { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+  .account-info .account-name { font-weight: 600; color: var(--ink); }
+  .logout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); padding: 4px 10px; border-radius: 999px; font-size: 12px; font-family: inherit; cursor: pointer; }
+  .logout-btn:hover { background: var(--bg); }
+  .mode-switch { display: flex; gap: 4px; background: var(--bg-card); padding: 4px; border-radius: 999px; border: 1px solid var(--line); flex-wrap: wrap; }
+  .mode-switch button { border: none; background: transparent; padding: 8px 18px; border-radius: 999px; font-family: inherit; font-size: 14px; cursor: pointer; color: var(--ink-soft); font-weight: 500; transition: all .2s; }
+  .mode-switch button.active { background: var(--ink); color: var(--bg); }
+  /* === Home-View mit Kacheln === */
+  .home-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; max-width: 1100px; margin: 0 auto; }
+  .home-tile { padding: 32px 28px; border-radius: 22px; cursor: pointer; transition: all .2s; position: relative; overflow: hidden; min-height: 240px; display: flex; flex-direction: column; }
+  .home-tile:hover { transform: translateY(-4px); box-shadow: 0 16px 40px -10px rgba(42,37,32,.25); }
+  .home-tile.patient { background: linear-gradient(135deg, #f5e6c8, #e8c980); color: #5a4a3a; border: 1px solid #d4a86a; }
+  .home-tile.games { background: linear-gradient(135deg, #c8d8e8, #8aabd4); color: #2a3850; border: 1px solid #6b8fb8; }
+  .home-tile.family { background: linear-gradient(135deg, #e6d8c8, #c8b29a); color: #4a3a2a; border: 1px solid #a88a6a; }
+  .home-tile-icon { font-size: 56px; line-height: 1; margin-bottom: 12px; }
+  .home-tile h2 { font-family: 'Fraunces', serif; font-size: 26px; margin-bottom: 10px; color: inherit; }
+  .home-tile p { font-size: 15px; line-height: 1.5; opacity: 0.85; flex: 1; }
+  .home-tile-action { margin-top: 16px; font-weight: 600; font-size: 15px; opacity: 0.9; }
+  @media (max-width: 540px) {
+    .mode-switch { font-size: 13px; }
+    .mode-switch button { padding: 7px 12px; font-size: 13px; }
+    .home-hero { margin: 8px 0 16px; }
+    .home-tiles { gap: 14px; }
+    .home-tile { padding: 24px 20px; min-height: 180px; }
+    .home-tile-icon { font-size: 44px; }
+    .home-tile h2 { font-size: 22px; }
+    .home-tile p { font-size: 14px; }
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 44px; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 8px; }
+  h1 em { font-style: italic; color: var(--accent); }
+  h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 26px; margin-bottom: 16px; }
+  h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 20px; margin-bottom: 12px; }
+  .lead { color: var(--ink-soft); margin-bottom: 32px; font-size: 18px; }
+  .card { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); font-family: inherit; font-size: 15px; font-weight: 500; cursor: pointer; transition: all .2s; }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px -6px rgba(42,37,32,.4); }
+  .btn-secondary { background: transparent; color: var(--ink); }
+  .btn-accent { background: var(--accent); border-color: var(--accent); }
+  .pill { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .pill-ai { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: linear-gradient(135deg, var(--gold), var(--accent)); color: white; letter-spacing: 0.04em; text-transform: uppercase; }
+  .pill-ai::before { content: '✦'; font-size: 10px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .input-group { margin-bottom: 18px; }
+  label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; font-weight: 500; }
+  input, textarea, select { width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-family: inherit; font-size: 15px; color: var(--ink); }
+  input:focus, textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .photo-tile { aspect-ratio: 1; border-radius: 10px; overflow: hidden; position: relative; border: 1px solid var(--line); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .2s; }
+  .photo-tile:hover { transform: scale(1.02); }
+  .photo-tile .placeholder { font-family: 'Fraunces', serif; font-size: 48px; color: var(--accent); font-style: italic; }
+  .photo-tile .label { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,.6)); color: white; padding: 16px 10px 8px; font-size: 13px; font-weight: 500; }
+  .photo-tile .delete-btn { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; border: none; background: rgba(255,255,255,.9); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .patient-view { text-align: center; }
+  .greeting { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 400; margin-bottom: 8px; }
+  .greeting em { font-style: italic; color: var(--accent); }
+  .date-line { color: var(--ink-soft); margin-bottom: 32px; font-size: 16px; }
+  .task-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 20px; padding: 28px 24px 20px; box-shadow: var(--shadow); margin-bottom: 16px; position: relative; }
+  .task-difficulty { position: absolute; top: 14px; right: 14px; display: flex; gap: 3px; }
+  .task-difficulty .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
+  .task-difficulty .dot.on { background: var(--accent); }
+  .task-repeat-tag { position: absolute; top: 14px; left: 14px; font-size: 11px; color: var(--gold); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .task-prompt { font-family: 'Fraunces', serif; font-size: 22px; line-height: 1.3; margin-bottom: 18px; color: var(--ink); font-weight: 500; white-space: pre-line; }
+  .hint-btn { display: inline-flex; align-items: center; gap: 6px; margin: 0 auto 12px; padding: 6px 14px; border-radius: 999px; border: 1px dashed var(--gold); background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--gold); cursor: pointer; transition: all .2s; }
+  .hint-btn:hover { background: rgba(212,160,23,.08); }
+  .hint-btn.used { opacity: 0.4; cursor: default; }
+  .hint-bubble { max-width: 480px; margin: 0 auto 14px; background: linear-gradient(135deg, #fff8e7, #fdf0d5); border: 1px solid rgba(212,160,23,.4); border-radius: 14px; padding: 12px 16px; font-family: 'Fraunces', serif; font-size: 16px; font-style: italic; color: #8a6914; line-height: 1.4; box-shadow: 0 4px 16px -8px rgba(212,160,23,.4); animation: hintFadeIn .4s ease; }
+  .hint-bubble::before { content: '💡 '; font-style: normal; }
+  @keyframes hintFadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .task-image { width: 160px; height: 160px; border-radius: 50%; margin: 0 auto 18px; background: linear-gradient(135deg, var(--accent-soft), var(--gold)); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 72px; color: white; font-style: italic; box-shadow: 0 8px 24px -10px rgba(200,85,61,.4); overflow: hidden; position: relative; }
+  .task-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .task-image.loading::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent); animation: shimmer 1.4s infinite; }
+  @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+  .image-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 360px; margin: 0 auto 18px; }
+  .image-grid .img-tile { aspect-ratio: 1; border-radius: 14px; overflow: hidden; border: 2px solid var(--line); background: linear-gradient(135deg, var(--accent-soft), var(--gold)); cursor: pointer; transition: all .2s; position: relative; }
+  .image-grid .img-tile:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .image-grid .img-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .image-grid .img-tile.correct { border-color: var(--green); box-shadow: 0 0 0 4px var(--green-soft); }
+  .image-grid .img-tile.wrong { border-color: var(--accent); box-shadow: 0 0 0 4px #f8e0db; }
+  .image-grid .img-tile .label { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,.7)); color: white; padding: 16px 8px 8px; font-size: 14px; font-weight: 500; font-family: 'Fraunces', serif; }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 540px; margin: 0 auto; }
+  @media (max-width: 540px) { .options { gap: 10px; } }
+  .option-btn { padding: 22px 18px; border: 2px solid var(--line); border-radius: 14px; background: var(--bg); font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; color: var(--ink); cursor: pointer; transition: all .2s; min-height: 80px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.25; word-break: break-word; }
+  .option-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .option-btn.correct { border-color: var(--green); background: var(--green-soft); color: var(--green); }
+  .option-btn.wrong { border-color: var(--accent); background: #f8e0db; color: var(--accent); }
+  @media (max-width: 540px) {
+    .option-btn { padding: 16px 10px; font-size: 17px; min-height: 70px; border-radius: 12px; }
+  }
+  .feedback { font-family: 'Fraunces', serif; font-size: 20px; margin-top: 14px; min-height: 26px; font-style: italic; }
+  .feedback.good { color: var(--green); }
+  .feedback.bad { color: var(--accent); }
+  .progress-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 14px; margin-top: 4px; }
+  /* Mobile: noch kompakter, kein Scrollen nötig */
+  @media (max-width: 540px) {
+    body { padding: 12px 12px 16px; }
+    header { margin-bottom: 12px !important; padding-bottom: 10px !important; gap: 8px !important; }
+    .brand-mark { font-size: 22px; }
+    .brand-tagline { display: none; }
+    .task-card { padding: 16px 14px 14px; border-radius: 16px; margin-bottom: 10px; }
+    .task-image { width: 110px; height: 110px; font-size: 48px; margin: 0 auto 12px; }
+    .task-prompt { font-size: 17px; line-height: 1.25; margin-bottom: 12px; }
+    .task-difficulty { top: 8px; right: 10px; }
+    .task-repeat-tag { top: 8px; left: 10px; font-size: 10px; }
+    .feedback { font-size: 16px; margin-top: 10px; min-height: 22px; }
+    .progress-row { margin-bottom: 8px; gap: 10px; }
+    .hint-btn { font-size: 12px; padding: 5px 12px; margin-bottom: 8px; }
+    .hint-bubble { padding: 10px 14px; font-size: 14px; margin-bottom: 10px; }
+    main { padding: 0 !important; }
+  }
+  .progress-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); transition: all .3s; }
+  .progress-dot.done { background: var(--green); }
+  .progress-dot.current { background: var(--accent); transform: scale(1.4); }
+  .task-types { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stage-slider-card { padding: 24px 28px; }
+  .stage-slider-row { display: flex; align-items: center; gap: 16px; margin: 16px 0 8px; }
+  .stage-slider-row input[type="range"] { flex: 1; -webkit-appearance: none; appearance: none; height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--green) 0%, var(--gold) 50%, var(--accent) 100%); outline: none; }
+  .stage-slider-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%; background: white; border: 3px solid var(--ink); cursor: pointer; box-shadow: 0 2px 8px rgba(42,37,32,.25); }
+  .stage-slider-row input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: white; border: 3px solid var(--ink); cursor: pointer; }
+  .stage-value { font-family: 'Fraunces', serif; font-size: 38px; font-weight: 500; color: var(--accent); min-width: 60px; text-align: center; line-height: 1; }
+  .stage-value-label { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+  .stage-explainer { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: var(--ink-soft); margin-top: 12px; }
+  .stage-explainer strong { color: var(--ink); }
+  .task-type { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-card); cursor: pointer; transition: all .2s; text-align: left; position: relative; }
+  .task-type:hover { border-color: var(--accent); }
+  .task-type.active { border-color: var(--accent); background: var(--accent-soft); }
+  .task-type-name { font-family: 'Fraunces', serif; font-size: 18px; margin-bottom: 4px; }
+  .task-type-desc { font-size: 13px; color: var(--ink-soft); }
+  .task-type-level { position: absolute; top: 8px; right: 8px; font-size: 10px; color: var(--ink-soft); font-weight: 600; }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat { text-align: center; padding: 20px; background: var(--bg); border-radius: 12px; border: 1px solid var(--line); }
+  .stat-value { font-family: 'Fraunces', serif; font-size: 32px; color: var(--accent); font-weight: 500; }
+  .stat-label { font-size: 13px; color: var(--ink-soft); }
+  .ai-panel { background: linear-gradient(135deg, #2a2520, #3d3530); color: var(--bg); border-radius: var(--radius); padding: 28px; margin-bottom: 20px; position: relative; overflow: hidden; }
+  .ai-panel::before { content: ''; position: absolute; top: -50%; right: -20%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(212,160,23,.15), transparent 60%); pointer-events: none; }
+  .ai-panel h2 { color: var(--bg); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .ai-panel .lead { color: rgba(245,239,230,.7); }
+  .skill-bars { display: flex; flex-direction: column; gap: 14px; }
+  .skill-bar-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .skill-bar-name { font-size: 14px; font-weight: 500; }
+  .skill-bar-val { font-size: 12px; color: rgba(245,239,230,.6); font-family: 'Fraunces', serif; }
+  .skill-bar-track { height: 8px; background: rgba(245,239,230,.1); border-radius: 999px; overflow: hidden; }
+  .skill-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--accent)); border-radius: 999px; transition: width .6s ease; }
+  .ai-insight { background: rgba(245,239,230,.08); border-left: 2px solid var(--gold); padding: 12px 16px; border-radius: 8px; margin-top: 16px; font-size: 14px; line-height: 1.5; }
+  .repeat-queue { background: rgba(245,239,230,.05); border: 1px dashed rgba(245,239,230,.2); border-radius: 10px; padding: 12px 16px; margin-top: 14px; font-size: 13px; color: rgba(245,239,230,.7); }
+  .repeat-queue strong { color: var(--gold); }
+  .ai-generator-status { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(245,239,230,.06); border-radius: 10px; margin-top: 16px; font-size: 13px; }
+  .ai-generator-status .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  .ai-generator-status .status-dot.idle { background: var(--ink-soft); animation: none; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(88,129,87,.5); } 70% { box-shadow: 0 0 0 8px rgba(88,129,87,0); } 100% { box-shadow: 0 0 0 0 rgba(88,129,87,0); } }
+  .games-view { text-align: center; }
+  .game-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 24px; }
+  .game-tile { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 22px; cursor: pointer; transition: all .2s; box-shadow: var(--shadow); text-align: left; }
+  .game-tile:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .game-tile-icon { font-size: 44px; margin-bottom: 10px; line-height: 1; }
+  .game-tile p { color: var(--ink-soft); font-size: 14px; }
+  .game-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .game-header h2 { margin: 0; }
+  .game-status { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-around; text-align: center; }
+  .game-status div span { display: block; font-family: 'Fraunces', serif; font-size: 24px; color: var(--accent); }
+  .game-status div small { color: var(--ink-soft); font-size: 12px; }
+  .memory-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 480px; margin: 0 auto; }
+  .memory-card { aspect-ratio: 1; border-radius: 12px; cursor: pointer; background: linear-gradient(135deg, var(--accent), #9d4030); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 48px; color: white; transition: transform .3s, background .3s; user-select: none; position: relative; }
+  .memory-card.flipped { background: var(--bg-card); color: var(--accent); border: 1px solid var(--line); transform: scale(1.05); }
+  .memory-card.matched { background: var(--green-soft); color: var(--green); border: 1px solid var(--green); cursor: default; }
+  .memory-card.hidden-symbol::before { content: '?'; }
+  .memory-card.flipped::before, .memory-card.matched::before { content: ''; }
+  /* === Spiele Mobile-Anpassungen === */
+  @media (max-width: 540px) {
+    .game-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .game-header h2 { font-size: 22px; }
+    .game-status { padding: 10px 12px; margin-bottom: 12px; gap: 4px; }
+    .game-status div span { font-size: 18px; }
+    .game-status div small { font-size: 10px; }
+    /* Memory */
+    .memory-board { gap: 6px; max-width: 100%; }
+    .memory-card { font-size: 32px; border-radius: 10px; }
+    /* UNO */
+    .uno-card { width: 50px; height: 76px; border-width: 2px; }
+    .uno-card .center { font-size: 22px; }
+    .uno-card .corner-top, .uno-card .corner-bottom { font-size: 10px; }
+    .uno-hand { gap: 2px; padding: 6px 2px; min-height: 88px; }
+    .uno-center { gap: 16px; padding: 12px; margin: 12px 0; flex-wrap: wrap; }
+    /* Vier gewinnt */
+    .c4-board { gap: 4px; padding: 8px; max-width: 100%; }
+    /* Tic Tac Toe */
+    .ttt-cell { font-size: 42px; border-radius: 10px; }
+    /* Dame */
+    .checkers-board { max-width: 100%; }
+    /* Wortkette */
+    .ws-input input { font-size: 16px; }
+    /* Kreuzworträtsel — schon vorher mobile-optimiert */
+  }
+  .memory-turn-indicator { font-family: 'Fraunces', serif; font-size: 20px; margin-bottom: 16px; font-style: italic; text-align: center; }
+  .memory-turn-indicator.you { color: var(--accent); }
+  .memory-turn-indicator.ai { color: var(--ink-soft); }
+  .uno-table { padding: 24px 0; }
+  .uno-area-label { font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; }
+  .uno-hand { display: flex; gap: 4px; justify-content: center; flex-wrap: nowrap; overflow-x: auto; padding: 8px 4px; min-height: 110px; }
+  .uno-card { flex: 0 0 auto; width: 64px; height: 96px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; cursor: pointer; transition: transform .15s; box-shadow: 0 2px 8px rgba(0,0,0,.2); border: 3px solid white; user-select: none; position: relative; }
+  .uno-card .corner-top { position: absolute; top: 4px; left: 6px; font-size: 12px; }
+  .uno-card .corner-bottom { position: absolute; bottom: 4px; right: 6px; font-size: 12px; transform: rotate(180deg); }
+  .uno-card .center { font-family: 'Fraunces', serif; font-size: 28px; }
+  .uno-card.red { background: #c8553d; } .uno-card.blue { background: #3d6ec8; }
+  .uno-card.green { background: #588157; } .uno-card.yellow { background: #d4a017; }
+  .uno-card.wild { background: linear-gradient(135deg, #c8553d, #d4a017, #588157, #3d6ec8); }
+  .uno-card.back { background: linear-gradient(135deg, #2a2520, #4a3530); cursor: default; color: rgba(255,255,255,.3); }
+  .uno-card.back .center { font-family: 'Fraunces', serif; font-size: 36px; font-style: italic; }
+  .uno-card.playable { animation: glow 1.5s infinite; }
+  .uno-card:hover.playable { transform: translateY(-8px); }
+  @keyframes glow { 0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,.2), 0 0 0 0 rgba(212,160,23,.6); } 50% { box-shadow: 0 2px 8px rgba(0,0,0,.2), 0 0 0 6px rgba(212,160,23,0); } }
+  .uno-center { display: flex; align-items: center; justify-content: center; gap: 32px; margin: 24px 0; padding: 24px; background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--line); }
+  .uno-color-picker { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 240px; margin: 16px auto; }
+  .uno-color-btn { padding: 12px; border-radius: 8px; border: none; color: white; font-weight: 600; cursor: pointer; }
+  .game-message { font-family: 'Fraunces', serif; font-size: 18px; font-style: italic; color: var(--ink-soft); min-height: 28px; margin: 12px 0; text-align: center; }
+  .c4-board { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; max-width: 420px; margin: 0 auto; padding: 12px; background: #3d6ec8; border-radius: 14px; }
+  .c4-cell { aspect-ratio: 1; background: var(--bg); border-radius: 50%; cursor: pointer; transition: all .15s; }
+  .c4-cell.hint:hover { background: rgba(212,160,23,.3); }
+  .c4-cell.red { background: var(--accent); box-shadow: inset 0 4px 0 rgba(0,0,0,.15); }
+  .c4-cell.yellow { background: var(--gold); box-shadow: inset 0 4px 0 rgba(0,0,0,.15); }
+  .c4-cell.win { animation: c4Pulse 1s infinite; }
+  @keyframes c4Pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+  .ttt-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 320px; margin: 0 auto; }
+  .ttt-cell { aspect-ratio: 1; background: var(--bg-card); border: 2px solid var(--line); border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 60px; font-weight: 500; color: var(--ink); transition: all .2s; }
+  .ttt-cell.taken { cursor: default; }
+  .ttt-cell.x { color: var(--accent); }
+  .ttt-cell.o { color: #3d6ec8; }
+  .ttt-cell.win { background: var(--green-soft); border-color: var(--green); }
+  .ttt-cell:hover:not(.taken) { border-color: var(--accent); background: var(--bg); }
+  .ws-area { max-width: 480px; margin: 0 auto; }
+  .ws-current { font-family: 'Fraunces', serif; font-size: 28px; padding: 24px; background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--line); margin-bottom: 16px; text-align: center; }
+  .ws-current em { color: var(--accent); font-style: italic; }
+  .ws-input { display: flex; gap: 8px; }
+  .ws-input input { flex: 1; font-size: 18px; padding: 14px; }
+  .ws-history { margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 10px; border: 1px solid var(--line); font-size: 14px; color: var(--ink-soft); max-height: 120px; overflow-y: auto; }
+  .ws-history div { padding: 4px 0; }
+  .ws-history .you { color: var(--accent); }
+  .ws-history .ai { color: var(--ink); }
+  .game-over-overlay { position: fixed; inset: 0; background: rgba(42,37,32,.55); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .game-over { text-align: center; padding: 40px 32px; background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); max-width: 420px; width: 100%; box-shadow: 0 20px 60px rgba(42,37,32,.3); }
+  .game-over-emoji { font-size: 72px; margin-bottom: 16px; line-height: 1; }
+  .game-over h3 { font-size: 32px; margin-bottom: 12px; font-family: 'Fraunces', serif; }
+  .game-over p { color: var(--ink-soft); margin-bottom: 28px; font-size: 16px; }
+  .game-over-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  /* Color-Picker für UNO */
+  .color-picker-overlay { position: fixed; inset: 0; background: rgba(42,37,32,.55); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .color-picker-modal { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 32px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(42,37,32,.3); }
+  .color-picker-modal h3 { font-family: 'Fraunces', serif; font-size: 24px; margin-bottom: 8px; }
+  .color-picker-modal p { color: var(--ink-soft); margin-bottom: 24px; }
+  .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .color-btn { padding: 28px 12px; border: none; border-radius: 14px; color: white; font-family: inherit; font-size: 18px; font-weight: 600; cursor: pointer; transition: transform .15s; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
+  .color-btn:hover { transform: translateY(-2px) scale(1.02); }
+  .color-btn.red    { background: linear-gradient(135deg, #d94545, #b03030); }
+  .color-btn.yellow { background: linear-gradient(135deg, #e8c020, #c9a014); color: #2a2520; }
+  .color-btn.green  { background: linear-gradient(135deg, #4a9050, #36703c); }
+  .color-btn.blue   { background: linear-gradient(135deg, #3070b5, #205088); }
+  /* Kreuzworträtsel */
+  .cw-grid { display: grid; grid-template-columns: repeat(var(--cw-cols, 11), 44px); gap: 2px; justify-content: center; margin-bottom: 28px; }
+  .cw-cell { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; background: var(--bg-card); border: 1px solid var(--line); position: relative; }
+  .cw-cell.empty { background: transparent; border: none; }
+  .cw-cell.filled { background: var(--bg); }
+  .cw-cell.solved { background: var(--green); color: white; }
+  .cw-cell.active { background: var(--gold); color: var(--ink); }
+  .cw-cell .cw-num { position: absolute; top: 2px; left: 4px; font-size: 10px; font-weight: 500; color: var(--ink-soft); line-height: 1; }
+  .cw-cell .cw-letter { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
+  .cw-clues { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .cw-clue-list h4 { font-family: 'Fraunces', serif; font-size: 18px; margin-bottom: 10px; }
+  .cw-clue { padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 15px; margin-bottom: 6px; border: 1px solid transparent; }
+  .cw-clue:hover { background: var(--bg); }
+  .cw-clue.active { background: var(--gold-soft); border-color: var(--gold); }
+  .cw-clue.solved { color: var(--ink-soft); text-decoration: line-through; }
+  .cw-input-area { grid-column: 1 / -1; padding: 16px; background: var(--bg); border: 1px solid var(--gold); border-radius: 12px; margin-top: 12px; }
+  .cw-input-prompt { font-family: 'Fraunces', serif; font-size: 17px; margin-bottom: 12px; }
+  .cw-input-row { display: flex; gap: 10px; align-items: stretch; }
+  .cw-input-row input { flex: 1; padding: 12px 16px; font-size: 18px; font-family: 'Fraunces', serif; font-weight: 600; letter-spacing: 4px; border: 2px solid var(--line); border-radius: 8px; background: var(--bg-card); color: var(--ink); text-transform: uppercase; }
+  .cw-input-row input:focus { outline: none; border-color: var(--gold); }
+  .cw-input-feedback { margin-top: 8px; font-size: 14px; min-height: 20px; }
+  .cw-input-feedback.bad { color: #b03030; font-weight: 500; }
+  @media (max-width: 600px) {
+    .cw-grid { grid-template-columns: repeat(var(--cw-cols, 11), 30px); }
+    .cw-cell { width: 30px; height: 30px; font-size: 16px; }
+    .cw-cell .cw-letter { font-size: 16px; }
+    .cw-cell .cw-num { font-size: 8px; top: 1px; left: 2px; }
+    .cw-clues { grid-template-columns: 1fr; }
+    .cw-input-row { flex-direction: column; }
+  }
+  /* Dame */
+  .checkers-board { display: grid; grid-template-columns: repeat(8, 1fr); max-width: 480px; margin: 16px auto; aspect-ratio: 1; border: 3px solid var(--ink); border-radius: 8px; overflow: hidden; }
+  .ck-cell { display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; }
+  .ck-cell.light { background: #f0d9a8; }
+  .ck-cell.dark { background: #8b6435; }
+  .ck-cell.selected { box-shadow: inset 0 0 0 4px var(--gold); }
+  .ck-cell.target::after { content: ''; position: absolute; width: 28%; height: 28%; background: var(--gold); border-radius: 50%; opacity: 0.7; }
+  .ck-piece { width: 78%; height: 78%; border-radius: 50%; box-shadow: 0 3px 6px rgba(0,0,0,.4), inset 0 -3px 6px rgba(0,0,0,.2), inset 0 3px 6px rgba(255,255,255,.3); display: flex; align-items: center; justify-content: center; font-size: 16px; color: gold; font-weight: bold; }
+  .ck-piece.white { background: linear-gradient(135deg, #ffffff, #d8d2c5); border: 2px solid #5a4a3a; }
+  .ck-piece.black { background: linear-gradient(135deg, #4a3528, #2a1810); border: 2px solid #d4a017; }
+  /* Kniffel */
+  .kn-status { display: flex; justify-content: space-around; margin: 16px 0 24px; padding: 16px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; }
+  .kn-status > div { text-align: center; }
+  .kn-status > div > span { display: block; font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600; color: var(--ink); }
+  .kn-status > div > small { color: var(--ink-soft); font-size: 12px; }
+
+  /* Würfelbecher */
+  .kn-cup-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 16px; min-height: 180px; justify-content: center; }
+  .kn-cup { font-size: 96px; line-height: 1; transform-origin: 50% 80%; cursor: pointer; user-select: none; transition: transform 0.2s; }
+  .kn-cup:hover { transform: scale(1.05); }
+  .kn-cup.shaking { animation: knShake 0.6s ease-in-out; }
+  @keyframes knShake {
+    0%, 100% { transform: rotate(0deg) translateY(0); }
+    15% { transform: rotate(-25deg) translateY(-8px); }
+    30% { transform: rotate(20deg) translateY(-4px); }
+    45% { transform: rotate(-18deg) translateY(-6px); }
+    60% { transform: rotate(15deg) translateY(-3px); }
+    75% { transform: rotate(-10deg) translateY(-2px); }
+    90% { transform: rotate(5deg); }
+  }
+  .kn-cup-label { font-size: 14px; color: var(--ink-soft); margin-top: 8px; }
+
+  /* Würfel */
+  .kn-dice { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; min-height: 80px; align-items: center; }
+  .kn-die {
+    width: 70px; height: 70px;
+    background: linear-gradient(135deg, #fdfaf3, #ebe2cf);
+    border: 2px solid #c9bda3; border-radius: 14px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr;
+    padding: 9px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(42, 37, 32, 0.18), inset 0 -3px 6px rgba(0,0,0,0.06), inset 0 3px 6px rgba(255,255,255,0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .kn-die:hover:not(.disabled) { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(42,37,32,0.22), inset 0 -3px 6px rgba(0,0,0,0.06); }
+  .kn-die.held {
+    background: linear-gradient(135deg, #f5e0a3, #e6c66a);
+    border-color: #c89817;
+    box-shadow: 0 4px 10px rgba(200, 152, 23, 0.4), inset 0 -3px 6px rgba(0,0,0,0.08);
+  }
+  .kn-die.held::before {
+    content: '📌'; position: absolute; top: -10px; right: -10px;
+    font-size: 18px; transform: rotate(20deg);
+  }
+  .kn-die.disabled { opacity: 0.55; cursor: default; }
+  .kn-die.rolling { animation: knRoll 0.6s ease-out; }
+  @keyframes knRoll {
+    0%   { transform: rotate(0deg) translateY(0) scale(1); }
+    25%  { transform: rotate(180deg) translateY(-20px) scale(1.1); }
+    50%  { transform: rotate(360deg) translateY(-30px) scale(0.95); }
+    75%  { transform: rotate(540deg) translateY(-15px) scale(1.05); }
+    100% { transform: rotate(720deg) translateY(0) scale(1); }
+  }
+  .kn-pip {
+    background: #2a2520; border-radius: 50%;
+    align-self: center; justify-self: center;
+    width: 9px; height: 9px;
+  }
+  .kn-die.held .kn-pip { background: #4a3520; }
+
+  /* Würfel-Pip-Positionen für 1-6 */
+  .kn-die[data-value="1"] .kn-pip:nth-child(1) { grid-area: 2 / 2; }
+  .kn-die[data-value="2"] .kn-pip:nth-child(1) { grid-area: 1 / 1; }
+  .kn-die[data-value="2"] .kn-pip:nth-child(2) { grid-area: 3 / 3; }
+  .kn-die[data-value="3"] .kn-pip:nth-child(1) { grid-area: 1 / 1; }
+  .kn-die[data-value="3"] .kn-pip:nth-child(2) { grid-area: 2 / 2; }
+  .kn-die[data-value="3"] .kn-pip:nth-child(3) { grid-area: 3 / 3; }
+  .kn-die[data-value="4"] .kn-pip:nth-child(1) { grid-area: 1 / 1; }
+  .kn-die[data-value="4"] .kn-pip:nth-child(2) { grid-area: 1 / 3; }
+  .kn-die[data-value="4"] .kn-pip:nth-child(3) { grid-area: 3 / 1; }
+  .kn-die[data-value="4"] .kn-pip:nth-child(4) { grid-area: 3 / 3; }
+  .kn-die[data-value="5"] .kn-pip:nth-child(1) { grid-area: 1 / 1; }
+  .kn-die[data-value="5"] .kn-pip:nth-child(2) { grid-area: 1 / 3; }
+  .kn-die[data-value="5"] .kn-pip:nth-child(3) { grid-area: 2 / 2; }
+  .kn-die[data-value="5"] .kn-pip:nth-child(4) { grid-area: 3 / 1; }
+  .kn-die[data-value="5"] .kn-pip:nth-child(5) { grid-area: 3 / 3; }
+  .kn-die[data-value="6"] .kn-pip:nth-child(1) { grid-area: 1 / 1; }
+  .kn-die[data-value="6"] .kn-pip:nth-child(2) { grid-area: 1 / 3; }
+  .kn-die[data-value="6"] .kn-pip:nth-child(3) { grid-area: 2 / 1; }
+  .kn-die[data-value="6"] .kn-pip:nth-child(4) { grid-area: 2 / 3; }
+  .kn-die[data-value="6"] .kn-pip:nth-child(5) { grid-area: 3 / 1; }
+  .kn-die[data-value="6"] .kn-pip:nth-child(6) { grid-area: 3 / 3; }
+
+  .kn-actions { text-align: center; margin: 16px 0 20px; }
+  .kn-help { color: var(--ink-soft); font-size: 13px; margin-top: 10px; }
+  .kn-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .kn-card h4 { font-family: 'Fraunces', serif; font-size: 16px; margin: 12px 0 8px; color: var(--ink-soft); }
+  .kn-card h4:first-child { margin-top: 0; }
+  .kn-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; transition: background .15s; border: 1px solid transparent; }
+  .kn-row:hover:not(.kn-locked) { background: var(--bg); border-color: var(--gold); }
+  .kn-row.kn-locked { color: var(--ink-soft); cursor: default; }
+  .kn-row.kn-locked .kn-points-input { display: none; }
+  .kn-row .kn-name { font-size: 15px; font-weight: 500; }
+  .kn-row .kn-points-input { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: var(--gold-dark, #8b6435); min-width: 60px; text-align: right; }
+  .kn-row .kn-points-final { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; min-width: 60px; text-align: right; }
+  .kn-row .kn-points-final.zero { color: var(--ink-soft); }
+  .kn-summary { padding: 10px 12px; border-top: 2px solid var(--line); margin-top: 8px; display: flex; justify-content: space-between; font-family: 'Fraunces', serif; }
+  .kn-summary.bonus { color: var(--green); font-weight: 600; }
+
+  /* 2-Spieler Layout */
+  .kn-player-badge { padding: 10px 16px; border-radius: 12px; font-size: 15px; margin-bottom: 12px; text-align: center; transition: background .25s; }
+  .kn-player-badge.you { background: linear-gradient(135deg, #d4e4d4, #a8c8a8); color: #2a4a2a; border: 1px solid #88aa88; }
+  .kn-player-badge.ai { background: linear-gradient(135deg, #d8d8e8, #a8a8c8); color: #2a2a4a; border: 1px solid #8888aa; }
+  .kn-row-2col { display: grid; grid-template-columns: 1fr 70px 70px; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 8px; transition: background .15s; border: 1px solid transparent; margin-bottom: 2px; }
+  .kn-row-2col.kn-clickable { cursor: pointer; }
+  .kn-row-2col.kn-clickable:hover { background: var(--bg); border-color: var(--gold); }
+  .kn-row-2col.kn-locked { color: var(--ink-soft); }
+  .kn-row-2col.kn-header { background: var(--bg); font-size: 13px; padding: 8px 10px; }
+  .kn-row-2col.kn-summary-row { background: var(--bg); font-size: 13px; color: var(--ink-soft); padding: 8px 10px; }
+  .kn-row-2col.kn-summary-row .bonus { color: var(--green); font-weight: 600; }
+  .kn-row-2col.kn-totals { background: var(--gold-soft); padding: 10px; font-size: 17px; border-top: 2px solid var(--gold); margin-top: 6px; }
+  .kn-name-col .kn-name { font-size: 14px; font-weight: 500; }
+  .kn-score-col { text-align: right; font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; }
+
+  /* Bestätigungs-Modal für Kategorie-Auswahl */
+  .kn-confirm-overlay { position: fixed; inset: 0; background: rgba(42,37,32,.55); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .kn-confirm-modal { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 32px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(42,37,32,.3); }
+  .kn-confirm-modal h3 { font-family: 'Fraunces', serif; font-size: 22px; margin-bottom: 8px; }
+  .kn-confirm-modal p { color: var(--ink-soft); margin-bottom: 12px; }
+  .kn-confirm-points { font-family: 'Fraunces', serif; font-size: 56px; font-weight: 600; color: var(--gold-dark, #8b6435); margin: 16px 0; line-height: 1; }
+  .kn-confirm-points.zero { color: var(--ink-soft); }
+  .kn-confirm-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+
+  @media (max-width: 480px) {
+    .kn-die { width: 56px; height: 56px; padding: 7px; }
+    .kn-pip { width: 7px; height: 7px; }
+    .kn-cup { font-size: 72px; }
+    .kn-status > div > span { font-size: 22px; }
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- === AUTHENTICATION SCREEN === -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card-wrapper">
+  <div class="auth-card">
+    <img src="logo.png" alt="Memovia" class="auth-logo">
+    <h1 class="auth-title" id="authTitle">Anmelden</h1>
+    <p class="auth-subtitle" id="authSubtitle">Geben Sie Ihre Zugangsdaten ein.</p>
+
+    <form id="authForm" onsubmit="return false;">
+      <div class="auth-field" id="authNameField" style="display: none;">
+        <label>Name</label>
+        <input type="text" id="authName" autocomplete="name" placeholder="Ihr Vorname">
+      </div>
+      <div class="auth-field">
+        <label>E-Mail</label>
+        <input type="email" id="authEmail" autocomplete="email" placeholder="ihre@email.de" required>
+      </div>
+      <div class="auth-field">
+        <label>Passwort</label>
+        <input type="password" id="authPassword" autocomplete="current-password" placeholder="Mindestens 6 Zeichen" required>
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <button class="auth-btn-primary" type="button" id="authSubmit" onclick="authSubmit()">Anmelden</button>
+    </form>
+
+    <div class="auth-divider"><span>oder</span></div>
+
+    <button class="auth-btn-secondary" id="authToggleMode" onclick="authToggleMode()">
+      Noch kein Konto? <strong>Jetzt registrieren</strong>
+    </button>
+
+    <p class="auth-note">Ihre Daten werden lokal auf diesem Gerät gespeichert.</p>
+  </div>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display: none;">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark"><img src="logo.png" alt="Memovia" class="brand-logo"></div>
+      <div class="brand-tagline">Erinnern · Begleiten · Verbinden</div>
+    </div>
+    <div class="mode-switch">
+      <button id="modeHome" class="active">Start</button>
+      <button id="modeFamily">Angehörige</button>
+      <button id="modePatient">Patient</button>
+      <button id="modeGames">Spiele</button>
+    </div>
+    <div class="account-info">
+      <span class="account-name" id="accountName">Karl</span>
+      <button class="logout-btn" onclick="authLogout()">Abmelden</button>
+    </div>
+  </header>
+
+  <main id="homeView">
+    <div class="home-hero">
+      <img src="logo.png" alt="Memovia" class="home-logo">
+    </div>
+    <div class="home-tiles">
+      <div class="home-tile patient" onclick="switchMode('patient')">
+        <div class="home-tile-icon">🌅</div>
+        <h2>Übungen für Karl</h2>
+        <p>Gehirnjogging, Erinnerungen und Wissen — Aufgaben passend zum heutigen Tag.</p>
+        <div class="home-tile-action">Übungen starten →</div>
+      </div>
+      <div class="home-tile games" onclick="switchMode('games')">
+        <div class="home-tile-icon">🎲</div>
+        <h2>Spiele</h2>
+        <p>Memory, Kniffel, Vier gewinnt, Dame, Kreuzworträtsel und vieles mehr.</p>
+        <div class="home-tile-action">Spiel auswählen →</div>
+      </div>
+      <div class="home-tile family" onclick="switchMode('family')">
+        <div class="home-tile-icon">👨‍👩‍👧</div>
+        <h2>Angehörigen-Bereich</h2>
+        <p>Personen und Erinnerungen pflegen, Lernfortschritt einsehen, Einstellungen.</p>
+        <div class="home-tile-action">Bereich öffnen →</div>
+      </div>
+    </div>
+  </main>
+
+  <main id="familyView" class="hidden">
+    <div style="margin-bottom: 36px;">
+      <span class="pill">Angehörigen-Bereich</span>
+      <h1 style="margin-top: 12px;">Hallo Lisa, hier ist <em>Opa Karls</em> Welt.</h1>
+      <p class="lead">Pflege Erinnerungen, Personen und Aufgaben — was du hier hinterlegst, sieht Karl in seiner App.</p>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-value" id="statPhotos">0</div><div class="stat-label">Bilder hinterlegt</div></div>
+      <div class="stat"><div class="stat-value" id="statSessions">0</div><div class="stat-label">Aufgaben gelöst</div></div>
+      <div class="stat"><div class="stat-value" id="statRate">–</div><div class="stat-label">Trefferquote</div></div>
+    </div>
+    <div class="ai-panel">
+      <h2>Karls Lernprofil</h2>
+      <p class="lead" style="margin-bottom: 20px;">Übersicht über Karls Übungen — wo er sicher ist und wo er noch Übung braucht.</p>
+      <div class="skill-bars" id="skillBars"></div>
+      <div class="ai-insight" id="aiInsight">Noch wenige Daten — sobald Karl ein paar Aufgaben gelöst hat, erscheint hier eine Empfehlung.</div>
+      <div class="repeat-queue" id="repeatQueue"><strong>Wiederholung von Schwächen:</strong> <span id="repeatList">Aktuell keine Aufgaben in der Warteschleife.</span></div>
+      <div class="ai-generator-status hidden">
+        <div class="status-dot idle" id="genStatusDot"></div>
+        <div style="flex: 1;">
+          <strong id="genStatusText"></strong>
+          <div id="genStatusSub"></div>
+        </div>
+        <button onclick="generateAITasks()" style="display: none;">Neue Fragen</button>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h2>Personen & Erinnerungen</h2>
+        <p style="color: var(--ink-soft); margin-bottom: 20px; font-size: 14px;">Karl lernt diese Personen wiederzuerkennen.</p>
+        <div id="photoGrid" class="photo-grid"></div>
+      </div>
+      <div class="card">
+        <h2>Neue Person hinzufügen</h2>
+        <div class="input-group"><label>Name</label><input type="text" id="newName" placeholder="z. B. Anna" /></div>
+        <div class="input-group"><label>Beziehung</label><select id="newRelation"><option>Tochter</option><option>Sohn</option><option>Enkel</option><option>Enkelin</option><option>Ehepartner:in</option><option>Geschwister</option><option>Freund:in</option><option>Sonstiges</option></select></div>
+        <div class="input-group"><label>Symbol (Initiale)</label><input type="text" id="newInitial" maxlength="2" placeholder="A" /></div>
+        <div class="input-group"><label>Notiz für Karl (optional)</label><textarea id="newNote" rows="2" placeholder="z. B. Annas Lieblingsblume sind Tulpen"></textarea></div>
+        <button class="btn btn-accent" onclick="addPerson()">Person speichern</button>
+      </div>
+    </div>
+    <div class="card stage-slider-card" style="margin-top: 20px;">
+      <h2>Wo befindet sich Karl gerade?</h2>
+      <p style="color: var(--ink-soft); margin-bottom: 8px; font-size: 14px;">Stelle das Stadium der Demenz ein — die Aufgaben werden automatisch entsprechend angepasst.</p>
+      <div class="stage-slider-row">
+        <div style="text-align: center;">
+          <div class="stage-value-label">Frühstadium</div>
+          <div style="font-size: 20px; color: var(--green); font-weight: 600;">1</div>
+        </div>
+        <input type="range" id="stageSlider" min="1" max="10" step="1" value="3" oninput="setStage(this.value)" />
+        <div style="text-align: center;">
+          <div class="stage-value-label">Spätstadium</div>
+          <div style="font-size: 20px; color: var(--accent); font-weight: 600;">10</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: baseline; justify-content: center; gap: 12px; margin: 8px 0 4px;">
+        <div class="stage-value" id="stageValue">3</div>
+        <div style="font-size: 16px; color: var(--ink-soft);">von 10</div>
+      </div>
+      <div class="stage-explainer" id="stageExplainer"></div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <h2>Aufgaben-Auswahl</h2>
+      <p style="color: var(--ink-soft); margin-bottom: 20px; font-size: 14px;">Welche Übungen darf Karl bekommen? Die kleine Zahl rechts ist sein aktuelles Niveau (1 = leicht, 5 = schwer).</p>
+      <div class="task-types" id="taskTypes"></div>
+      <div style="font-size: 13px; color: var(--ink-soft); padding: 12px; background: var(--bg); border-radius: 10px;">
+        Falsch beantwortete Fragen tauchen automatisch nach kurzer Zeit erneut auf — und Personen, die Karl nicht erkannt hat, kommen nach 18-25 Aufgaben gezielt zurück.
+      </div>
+      <div style="margin-top: 16px;">
+        <button class="btn btn-secondary" onclick="resetLearning()" style="font-size: 13px; padding: 8px 16px;">↺ Lernfortschritt zurücksetzen</button>
+      </div>
+    </div>
+  </main>
+
+  <main id="patientView" class="patient-view hidden">
+    <div class="progress-row" id="progressRow"></div>
+    <div class="task-card">
+      <div class="task-repeat-tag hidden" id="repeatTag">↻ Wiederholung</div>
+      <div class="task-difficulty" id="difficultyDots"></div>
+      <div class="task-image" id="taskImage">A</div>
+      <div class="task-prompt" id="taskPrompt">Wer ist diese Person?</div>
+      <button class="hint-btn hidden" id="hintBtn" onclick="showHint()">💡 Hinweis</button>
+      <div class="hint-bubble hidden" id="hintBubble"></div>
+      <div class="image-grid hidden" id="taskImageGrid"></div>
+      <div class="options" id="taskOptions"></div>
+      <div class="feedback" id="taskFeedback">&nbsp;</div>
+      <button class="btn btn-secondary hidden" id="reportImageBtn" onclick="reportBadImage()" style="font-size: 13px; padding: 8px 16px; margin-top: 16px;">🚫 Bild passt nicht zur Aufgabe</button>
+    </div>
+    <button class="btn btn-secondary" onclick="nextTask()">Nächste Aufgabe →</button>
+  </main>
+
+  <main id="gamesView" class="games-view hidden">
+    <span class="pill">Spiele-Bereich</span>
+    <h1 style="margin-top: 16px;">Lust auf <em>ein Spiel</em>, Karl?</h1>
+    <p class="lead">Such dir ein Spiel aus — wir spielen zusammen.</p>
+    <div id="gameMenu">
+      <div class="game-picker">
+        <div class="game-tile" onclick="startMemory()"><div class="game-tile-icon">🎴</div><h3>Memory</h3><p>Finde die passenden Paare gegen den Computer.</p></div>
+        <div class="game-tile" onclick="startUno()"><div class="game-tile-icon">🃏</div><h3>Karten ablegen</h3><p>Wie bei UNO: Karten passend ablegen.</p></div>
+        <div class="game-tile" onclick="startConnect4()"><div class="game-tile-icon">🔵</div><h3>Vier gewinnt</h3><p>Vier Steine in eine Reihe.</p></div>
+        <div class="game-tile" onclick="startTicTacToe()"><div class="game-tile-icon">⭕</div><h3>Tic Tac Toe</h3><p>Drei in einer Reihe — der Klassiker.</p></div>
+        <div class="game-tile" onclick="startWordChain()"><div class="game-tile-icon">🔤</div><h3>Wortkette</h3><p>Letzter Buchstabe wird neuer Anfangsbuchstabe.</p></div>
+        <div class="game-tile" onclick="startCrossword()"><div class="game-tile-icon">📝</div><h3>Kreuzworträtsel</h3><p>Wörter zu Hinweisen finden — kleines Rätsel.</p></div>
+        <div class="game-tile" onclick="startCheckers()"><div class="game-tile-icon">⚪</div><h3>Dame</h3><p>Klassisches Brettspiel — schlagen und Damen werden.</p></div>
+        <div class="game-tile" onclick="startKniffel()"><div class="game-tile-icon">🎲</div><h3>Kniffel</h3><p>Würfelspiel — Kategorien füllen und Punkte sammeln.</p></div>
+      </div>
+    </div>
+    <div id="memoryGame" class="hidden" style="text-align: left;">
+      <div class="game-header"><h2>🎴 Memory</h2><button class="btn btn-secondary" onclick="exitGame()" style="font-size: 13px; padding: 8px 16px;">← Zurück</button></div>
+      <div class="game-status">
+        <div><span id="memYouScore">0</span><small>Ihre Paare</small></div>
+        <div><span id="memAiScore">0</span><small>Computer</small></div>
+        <div><span id="memTurn">Sie</span><small>am Zug</small></div>
+      </div>
+      <div class="memory-turn-indicator you" id="memTurnIndicator">Sie sind dran — wählen Sie eine Karte.</div>
+      <div class="memory-board" id="memoryBoard"></div>
+      <div id="memOver" class="hidden"></div>
+    </div>
+    <div id="unoGame" class="hidden" style="text-align: left;">
+      <div class="game-header"><h2>🃏 Karten ablegen</h2><button class="btn btn-secondary" onclick="exitGame()" style="font-size: 13px; padding: 8px 16px;">← Zurück</button></div>
+      <div class="uno-table">
+        <div style="margin-bottom: 16px;"><div class="uno-area-label">Computer (<span id="unoAiCount">7</span> Karten)</div><div class="uno-hand" id="unoAiHand"></div></div>
+        <div class="uno-center">
+          <div><div class="uno-area-label" style="text-align: center;">Stapel</div><div id="unoDiscard"></div></div>
+          <div><div class="uno-area-label" style="text-align: center;">Aktive Farbe</div><div id="unoActiveColor" style="width: 60px; height: 60px; border-radius: 50%; margin: 0 auto;"></div></div>
+        </div>
+        <div class="game-message" id="unoMessage">Sie sind am Zug.</div>
+        <div style="margin-bottom: 16px;"><div class="uno-area-label">Ihre Karten (<span id="unoPlayerCount">7</span>)</div><div class="uno-hand" id="unoPlayerHand"></div></div>
+        <div style="text-align: center; margin-top: 12px;"><button class="btn btn-secondary" onclick="unoDraw()" id="unoDrawBtn">📥 Karte ziehen</button></div>
+        <div id="unoColorPicker" class="color-picker-overlay hidden">
+          <div class="color-picker-modal">
+            <h3>Farbe wählen</h3>
+            <p>Welche Farbe wünschen Sie für die Wild-Karte?</p>
+            <div class="color-grid">
+              <button class="color-btn red" onclick="unoPickColor('red')">Rot</button>
+              <button class="color-btn blue" onclick="unoPickColor('blue')">Blau</button>
+              <button class="color-btn green" onclick="unoPickColor('green')">Grün</button>
+              <button class="color-btn yellow" onclick="unoPickColor('yellow')">Gelb</button>
+            </div>
+          </div>
+        </div>
+        <div id="unoOver" class="hidden"></div>
+      </div>
+    </div>
+    <div id="connect4Game" class="hidden">
+      <div class="game-header"><h2>🔵 Vier gewinnt</h2><button class="btn btn-secondary" onclick="exitGame()" style="font-size: 13px; padding: 8px 16px;">← Zurück</button></div>
+      <div class="game-status">
+        <div><span style="color: var(--accent);">🔴</span><small>Sie</small></div>
+        <div><span style="color: var(--gold);">🟡</span><small>Computer</small></div>
+      </div>
+      <div class="memory-turn-indicator you" id="c4Turn">Sie sind am Zug — wählen Sie eine Spalte.</div>
+      <div class="c4-board" id="c4Board"></div>
+      <div id="c4Over" class="hidden"></div>
+    </div>
+    <div id="tttGame" class="hidden">
+      <div class="game-header"><h2>⭕ Tic Tac Toe</h2><button class="btn btn-secondary" onclick="exitGame()" style="font-size: 13px; padding: 8px 16px;">← Zurück</button></div>
+      <div class="game-status">
+        <div><span style="color: var(--accent);">×</span><small>Sie</small></div>
+        <div><span style="color: #3d6ec8;">○</span><small>Computer</small></div>
+      </div>
+      <div class="memory-turn-indicator you" id="tttTurn">Sie sind dran.</div>
+      <div class="ttt-board" id="tttBoard"></div>
+      <div id="tttOver" class="hidden"></div>
+    </div>
+    <div id="wordChainGame" class="hidden" style="text-align: left;">
+      <div class="game-header"><h2>🔤 Wortkette</h2><button class="btn btn-secondary" onclick="exitGame()" style="font-size: 13px; padding: 8px 16px;">← Zurück</button></div>
+      <p style="color: var(--ink-soft); margin-bottom: 16px;">Der letzte Buchstabe des vorigen Worts ist Ihr Anfangsbuchstabe.</p>
+      <div class="ws-area">
+        <div class="ws-current">Letztes Wort: <em id="wsLastWord">Sonne</em><br><small style="font-size: 14px; color: var(--ink-soft);">Ihr Wort beginnt mit <strong id="wsStartLetter">E</strong></small></div>
+        <div class="ws-input">
+          <input type="text" id="wsInput" placeholder="Ihr Wort…" />
+          <button class="btn btn-accent" onclick="wsSubmit()">Senden</button>
+        </div>
+        <div class="game-message" id="wsMessage">&nbsp;</div>
+        <div class="ws-history" id="wsHistory"></div>
+      </div>
+      <div id="wsOver" class="hidden"></div>
+    </div>
+    <div id="crosswordGame" class="hidden" style="text-align: left;">
+      <div class="game-header"><h2>📝 Kreuzworträtsel</h2><button class="btn btn-secondary" onclick="exitGame()" style="font-size: 13px; padding: 8px 16px;">← Zurück</button></div>
+      <p style="color: var(--ink-soft); margin-bottom: 16px;">Tippe ein leeres Wort an und wähle die richtige Lösung.</p>
+      <div id="crosswordArea">
+        <div class="cw-grid" id="cwGrid"></div>
+        <div class="cw-clues" id="cwClues"></div>
+      </div>
+      <div id="cwOver" class="hidden"></div>
+    </div>
+    <div id="checkersGame" class="hidden" style="text-align: left;">
+      <div class="game-header"><h2>⚪ Dame</h2><button class="btn btn-secondary" onclick="exitGame()" style="font-size: 13px; padding: 8px 16px;">← Zurück</button></div>
+      <div class="game-status">
+        <div><span id="ckYouLeft">12</span><small>Ihre Steine</small></div>
+        <div><span id="ckAiLeft">12</span><small>Computer</small></div>
+        <div><span id="ckTurn">Sie</span><small>am Zug</small></div>
+      </div>
+      <div class="checkers-board" id="checkersBoard"></div>
+      <div class="game-message" id="ckMessage" style="margin-top: 16px;">Sie sind am Zug. Tippen Sie einen weißen Stein an, dann auf das Zielfeld.</div>
+      <div id="ckOver" class="hidden"></div>
+    </div>
+    <div id="kniffelGame" class="hidden" style="text-align: left;">
+      <div class="game-header"><h2>🎲 Kniffel</h2><button class="btn btn-secondary" onclick="exitGame()" style="font-size: 13px; padding: 8px 16px;">← Zurück</button></div>
+      <div class="kn-status">
+        <div><span id="knRound">1</span><small>von 13 Runden</small></div>
+        <div><span id="knRolls">3</span><small>Würfe übrig</small></div>
+        <div><span id="knTotal">0 : 0</span><small>Sie : KI</small></div>
+      </div>
+      <div class="kn-cup-area">
+        <div id="knCup" class="kn-cup" onclick="knRoll()">🥃</div>
+        <div class="kn-cup-label" id="knCupLabel">Tippen Sie auf den Becher zum Würfeln</div>
+      </div>
+      <div class="kn-dice" id="knDice"></div>
+      <div class="kn-actions">
+        <button class="btn btn-accent" id="knRollBtn" onclick="knRoll()" style="display: none;">🎲 Nochmal würfeln</button>
+        <p class="kn-help" id="knHelp">&nbsp;</p>
+      </div>
+      <div class="kn-card" id="knCard"></div>
+      <div id="knConfirm" class="hidden"></div>
+      <div id="knOver" class="hidden"></div>
+    </div>
+  </main>
+</div>
+<script src="images.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
