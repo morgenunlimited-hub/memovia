@@ -133,6 +133,47 @@ async function authLogout() {
   location.reload();  // sauberer Neustart
 }
 
+// Notfall: alle Daten löschen falls etwas korrupt ist
+async function authResetEverything() {
+  if (!confirm('Wirklich alle Daten zurücksetzen? Alle Accounts und Spielstände werden gelöscht.')) return;
+  try {
+    // Alle memora_-Keys löschen
+    if (typeof localStorage !== 'undefined') {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('memora_')) keys.push(k);
+      }
+      keys.forEach(k => localStorage.removeItem(k));
+    }
+    // Auch über die storage-Bridge
+    const list = await window.storage.list('');
+    if (list && list.keys) {
+      for (const k of list.keys) {
+        try { await window.storage.delete(k); } catch(e) {}
+      }
+    }
+  } catch(e) {
+    console.error('Reset error:', e);
+  }
+  alert('Daten wurden zurückgesetzt. Die App startet neu.');
+  location.reload();
+}
+
+// Notfall: ohne Anmeldung ins App
+async function authSkipLogin() {
+  currentUser = { id: 'guest', email: 'gast@memovia.local', name: 'Gast' };
+  try { await window.storage.set('memora-current-user', JSON.stringify(currentUser)); } catch(e) {}
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = '';
+  try {
+    await initApp();
+  } catch(e) {
+    console.error('initApp Fehler:', e);
+    alert('Hinweis: ' + (e.message || 'Beim Laden ist ein Fehler aufgetreten.'));
+  }
+}
+
 // UI-Handler
 let authMode = 'login';  // 'login' oder 'register'
 
@@ -5731,37 +5772,54 @@ document.getElementById('modeGames').onclick = () => switchMode('games');
 // Wird aufgerufen sobald ein User eingeloggt ist (sei es durch Auto-Login
 // oder nach erfolgreichem Login/Registrieren).
 async function initApp() {
-  await loadState();
-  refreshFamilyView();
-  renderDate();
-  // Namen im Header anzeigen
-  if (currentUser) {
-    const nameEl = document.getElementById('accountName');
-    if (nameEl) nameEl.textContent = currentUser.name;
-  }
-  switchMode('home');
+  // Jeder Schritt darf fehlschlagen — die App soll trotzdem laden
+  try { await loadState(); } catch(e) { console.error('[Memovia] loadState:', e); }
+  try { refreshFamilyView(); } catch(e) { console.error('[Memovia] refreshFamilyView:', e); }
+  try { renderDate(); } catch(e) { console.error('[Memovia] renderDate:', e); }
+  try {
+    if (currentUser) {
+      const nameEl = document.getElementById('accountName');
+      if (nameEl) nameEl.textContent = currentUser.name;
+    }
+  } catch(e) { console.error('[Memovia] accountName:', e); }
+  try { switchMode('home'); } catch(e) { console.error('[Memovia] switchMode:', e); }
   // Hintergrund-KI nach kurzer Wartezeit (läuft still im Hintergrund)
   setTimeout(() => {
-    const total = Object.values(aiPool).reduce((s, a) => s + a.length, 0);
-    if (total < 5) generateAITasks();
+    try {
+      const total = Object.values(aiPool || {}).reduce((s, a) => s + (a?.length || 0), 0);
+      if (total < 5 && typeof generateAITasks === 'function') generateAITasks();
+    } catch(e) { console.error('[Memovia] aiPool:', e); }
   }, 2000);
 }
 
 // Beim ersten Laden: prüfen ob jemand eingeloggt ist
 (async () => {
-  const existingUser = await authGetCurrentUser();
-  if (existingUser) {
+  let existingUser = null;
+  try {
+    existingUser = await authGetCurrentUser();
+  } catch(e) {
+    console.error('[Memovia] authGetCurrentUser:', e);
+  }
+  if (existingUser && existingUser.id) {
     currentUser = existingUser;
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = '';
-    await initApp();
+    try {
+      await initApp();
+    } catch(e) {
+      console.error('[Memovia] initApp Auto-Login:', e);
+    }
   } else {
     // Auth-Screen sichtbar lassen, Enter-Submit hinzufügen
-    document.getElementById('authForm').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        authSubmit();
-      }
-    });
+    try {
+      document.getElementById('authForm').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          authSubmit();
+        }
+      });
+    } catch(e) {
+      console.error('[Memovia] authForm listener:', e);
+    }
   }
 })();
