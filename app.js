@@ -90,12 +90,17 @@ async function authSaveAccounts(accounts) {
 }
 
 async function authRegister(email, password, name) {
-  const accounts = await authLoadAccounts();
-  if (accounts.some(a => a.email.toLowerCase() === email.toLowerCase())) {
-    throw new Error('Diese E-Mail ist bereits registriert.');
+  // E-Mail-Format prüfen: muss xxx@yyy.zz haben
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if (!emailPattern.test(email)) {
+    throw new Error('Bitte eine gültige E-Mail-Adresse eingeben (z.B. name@email.de).');
   }
   if (password.length < 6) {
     throw new Error('Das Passwort muss mindestens 6 Zeichen lang sein.');
+  }
+  const accounts = await authLoadAccounts();
+  if (accounts.some(a => a.email.toLowerCase() === email.toLowerCase())) {
+    throw new Error('Diese E-Mail ist bereits registriert.');
   }
   const hash = await hashPassword(password);
   const id = 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);

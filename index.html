@@ -29,13 +29,29 @@
   header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
   .brand { display: flex; align-items: center; gap: 12px; }
   .brand-logo { height: 44px; width: auto; display: block; }
-  .home-hero { text-align: center; margin: 12px 0 24px; }
-  .home-logo { width: 220px; max-width: 70%; height: auto; display: block; margin: 0 auto; }
+  .home-hero { text-align: center; margin: 12px 0 20px; }
+  .home-logo { width: 200px; max-width: 60%; height: auto; display: block; margin: 0 auto; }
+  .logout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); padding: 6px 10px; border-radius: 999px; font-size: 13px; font-family: inherit; cursor: pointer; line-height: 1; }
+  .logout-btn:hover { background: var(--bg); color: var(--ink); }
   @media (max-width: 540px) {
-    .brand-logo { height: 32px; }
-    .home-logo { width: 180px; }
+    /* Header kompakt — eine Zeile mit Logo, Account rechts, Mode-Switch darunter */
+    header { display: grid !important; grid-template-columns: auto 1fr auto; grid-template-areas: "brand spacer account" "switch switch switch"; gap: 8px 12px; align-items: center; padding: 8px 0 10px !important; margin-bottom: 12px !important; }
+    .brand { grid-area: brand; }
+    .brand-logo { height: 28px; }
+    .account-info { grid-area: account; font-size: 12px; gap: 6px; }
+    .account-info .account-name { font-size: 13px; }
+    .logout-btn { padding: 4px 10px; font-size: 13px; }
+    .mode-switch { grid-area: switch; justify-content: center; width: 100%; }
+    .mode-switch button { padding: 6px 14px; font-size: 13px; flex: 1; min-width: 0; text-align: center; }
+    .home-hero { margin: 4px 0 12px; }
+    .home-logo { width: 140px; max-width: 50%; }
+    .home-tile { padding: 18px 16px !important; min-height: auto !important; }
+    .home-tile-icon { font-size: 36px !important; margin-bottom: 6px !important; }
+    .home-tile h2 { font-size: 19px !important; margin-bottom: 4px !important; }
+    .home-tile p { font-size: 13px !important; line-height: 1.4 !important; }
+    .home-tile-action { font-size: 13px !important; margin-top: 8px !important; }
+    .home-tiles { gap: 10px !important; }
   }
-  .brand-tagline { font-size: 13px; color: var(--ink-soft); }
 
   /* === Auth-Screen === */
   .auth-screen { 
@@ -80,8 +96,6 @@
   /* Account-Anzeige im Header */
   .account-info { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); }
   .account-info .account-name { font-weight: 600; color: var(--ink); }
-  .logout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); padding: 4px 10px; border-radius: 999px; font-size: 12px; font-family: inherit; cursor: pointer; }
-  .logout-btn:hover { background: var(--bg); }
   .mode-switch { display: flex; gap: 4px; background: var(--bg-card); padding: 4px; border-radius: 999px; border: 1px solid var(--line); flex-wrap: wrap; }
   .mode-switch button { border: none; background: transparent; padding: 8px 18px; border-radius: 999px; font-family: inherit; font-size: 14px; cursor: pointer; color: var(--ink-soft); font-weight: 500; transition: all .2s; }
   .mode-switch button.active { background: var(--ink); color: var(--bg); }
@@ -558,8 +572,7 @@
 
   <header>
     <div class="brand">
-      <div class="brand-mark"><img src="logo.png" alt="Memovia" class="brand-logo"></div>
-      <div class="brand-tagline">Erinnern · Begleiten · Verbinden</div>
+      <img src="logo.png" alt="Memovia" class="brand-logo">
     </div>
     <div class="mode-switch">
       <button id="modeHome" class="active">Start</button>
@@ -569,7 +582,7 @@
     </div>
     <div class="account-info">
       <span class="account-name" id="accountName">Karl</span>
-      <button class="logout-btn" data-action="logout">Abmelden</button>
+      <button class="logout-btn" data-action="logout" title="Abmelden">⎋</button>
     </div>
   </header>
 
@@ -820,8 +833,8 @@
     </div>
   </main>
 </div>
-<script src="images.js?v=20260518d"></script>
-<script src="app.js?v=20260518d"></script>
+<script src="images.js?v=20260518e"></script>
+<script src="app.js?v=20260518e"></script>
 
 <!-- Notfall-Auth-Handler: registriert Click-Listener für Auth-Buttons.
      Funktioniert auch wenn app.js gerade noch lädt. -->
