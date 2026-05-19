@@ -23,7 +23,8 @@
   html { overscroll-behavior: none; background: linear-gradient(135deg, #2a4a6a, #4a3a6a); background-attachment: fixed; }
   body { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #2a4a6a, #4a3a6a); background-attachment: fixed; color: var(--ink); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; overscroll-behavior: none; -webkit-text-size-adjust: 100%; touch-action: pan-y; min-height: 100vh; min-height: 100dvh; }
   /* Hintergrund-Erweiterung damit beim Bouncen oben/unten nichts Helles zu sehen ist */
-  body::after { content: ''; position: fixed; left: 0; right: 0; top: -200px; height: 200px; background: #2a4a6a; z-index: -1; }
+  body::after { content: ''; position: fixed; left: 0; right: 0; top: -200px; height: 200px; background: #2a4a6a; z-index: -1; pointer-events: none; }
+  html::after { content: ''; position: fixed; left: 0; right: 0; bottom: -200px; height: 200px; background: #4a3a6a; z-index: -1; pointer-events: none; }
   #mainApp { background: transparent; min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: calc(env(safe-area-inset-bottom) + 70px); }
   body::before { content: ''; position: fixed; inset: 0; background-image: radial-gradient(circle at 20% 10%, rgba(212,160,23,.06), transparent 40%), radial-gradient(circle at 80% 80%, rgba(200,85,61,.05), transparent 40%); pointer-events: none; z-index: 0; }
   .app { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; position: relative; z-index: 1; }
@@ -83,24 +84,29 @@
     .logout-btn { padding: 0; width: 28px; height: 28px; font-size: 16px; background: rgba(255,255,255,.15); border: none; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; line-height: 1; }
     .logout-btn:hover { background: rgba(255,255,255,.25); color: white; }
 
-    /* Logo-Hero in allen Views ausblenden — Header-Logo reicht */
-    #homeView .home-hero,
+    /* Logo nur auf Home zentriert + groß. Andere Views: kein Logo. */
+    #homeView .home-hero { display: block !important; margin: 16px 0 20px !important; text-align: center; }
+    #homeView .home-logo { display: block !important; width: 200px !important; max-width: 60% !important; margin: 0 auto !important; filter: drop-shadow(0 4px 12px rgba(0,0,0,.3)); }
     #gamesView .view-hero,
     #familyView .view-hero,
     #patientView .view-hero { display: none !important; }
+    /* Header-Logo auf Home AUS, in anderen Views AN */
+    body:has(#homeView:not(.hidden)) header .brand-logo { display: none; }
 
-    /* Mode-Switch wird zur Tab-Bar UNTEN am Bildschirm — Instagram-Stil */
+    /* Mode-Switch wird zur Tab-Bar UNTEN am Bildschirm — Glas auf Blau */
     .mode-switch {
       position: fixed !important;
       bottom: 0; left: 0; right: 0;
       display: flex !important;
-      background: var(--bg-card) !important;
+      background: rgba(42, 74, 106, .85) !important;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-radius: 0 !important;
       border: none !important;
-      border-top: 1px solid var(--line) !important;
+      border-top: 1px solid rgba(255,255,255,.1) !important;
       padding: 8px 0 calc(8px + env(safe-area-inset-bottom)) 0 !important;
       gap: 0 !important;
-      box-shadow: 0 -4px 20px rgba(0,0,0,.12);
+      box-shadow: 0 -4px 20px rgba(0,0,0,.25);
       z-index: 100;
       flex-wrap: nowrap !important;
     }
@@ -111,32 +117,33 @@
       border-radius: 0 !important;
       display: flex !important; flex-direction: column !important; align-items: center !important; gap: 3px !important;
       min-width: 0;
-      color: var(--ink-soft) !important;
+      color: rgba(255,255,255,.6) !important;
       background: transparent !important;
       font-weight: 500 !important;
       letter-spacing: 0.02em;
     }
     .mode-switch button.active {
       background: transparent !important;
-      color: var(--ink) !important;
+      color: white !important;
       font-weight: 700 !important;
     }
-    /* Icons als saubere SVGs */
+    /* Icons als weiße SVGs */
     .mode-switch button::before {
       content: '';
       display: block;
       width: 26px; height: 26px;
       background-repeat: no-repeat; background-position: center; background-size: contain;
+      opacity: .7;
     }
-    .mode-switch button.active::before { transform: scale(1.05); }
-    #modeHome::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a4a3a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z'/></svg>"); }
-    #modeHome.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a2520' stroke='%232a2520' stroke-width='1.5' stroke-linejoin='round'><path d='M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z'/></svg>"); }
-    #modeFamily::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a4a3a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='9' cy='8' r='3'/><circle cx='17' cy='9' r='2.5'/><path d='M3 20c0-3 3-5 6-5s6 2 6 5'/><path d='M14 19c.5-2.5 2-4 3.5-4 2 0 3.5 1.5 3.5 4'/></svg>"); }
-    #modeFamily.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a2520' stroke='%232a2520' stroke-width='1.5' stroke-linejoin='round'><circle cx='9' cy='8' r='3'/><circle cx='17' cy='9' r='2.5'/><path d='M3 20c0-3 3-5 6-5s6 2 6 5'/><path d='M14 19c.5-2.5 2-4 3.5-4 2 0 3.5 1.5 3.5 4'/></svg>"); }
-    #modePatient::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a4a3a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v3M5 5l2 2M2 12h3M19 5l-2 2M22 12h-3'/><circle cx='12' cy='13' r='5'/></svg>"); }
-    #modePatient.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a2520' stroke='%232a2520' stroke-width='1.5' stroke-linejoin='round'><path d='M12 2v3M5 5l2 2M2 12h3M19 5l-2 2M22 12h-3'/><circle cx='12' cy='13' r='5'/></svg>"); }
-    #modeGames::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a4a3a' stroke-width='1.8' stroke-linejoin='round'><rect x='4' y='4' width='16' height='16' rx='2.5'/><circle cx='8.5' cy='8.5' r='1.2' fill='%235a4a3a'/><circle cx='15.5' cy='8.5' r='1.2' fill='%235a4a3a'/><circle cx='12' cy='12' r='1.2' fill='%235a4a3a'/><circle cx='8.5' cy='15.5' r='1.2' fill='%235a4a3a'/><circle cx='15.5' cy='15.5' r='1.2' fill='%235a4a3a'/></svg>"); }
-    #modeGames.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a2520' stroke='%232a2520' stroke-width='1.5' stroke-linejoin='round'><rect x='4' y='4' width='16' height='16' rx='2.5'/><circle cx='8.5' cy='8.5' r='1.2' fill='white'/><circle cx='15.5' cy='8.5' r='1.2' fill='white'/><circle cx='12' cy='12' r='1.2' fill='white'/><circle cx='8.5' cy='15.5' r='1.2' fill='white'/><circle cx='15.5' cy='15.5' r='1.2' fill='white'/></svg>"); }
+    .mode-switch button.active::before { transform: scale(1.05); opacity: 1; }
+    #modeHome::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z'/></svg>"); }
+    #modeHome.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' stroke='white' stroke-width='1.5' stroke-linejoin='round'><path d='M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z'/></svg>"); }
+    #modeFamily::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='9' cy='8' r='3'/><circle cx='17' cy='9' r='2.5'/><path d='M3 20c0-3 3-5 6-5s6 2 6 5'/><path d='M14 19c.5-2.5 2-4 3.5-4 2 0 3.5 1.5 3.5 4'/></svg>"); }
+    #modeFamily.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' stroke='white' stroke-width='1.5' stroke-linejoin='round'><circle cx='9' cy='8' r='3'/><circle cx='17' cy='9' r='2.5'/><path d='M3 20c0-3 3-5 6-5s6 2 6 5'/><path d='M14 19c.5-2.5 2-4 3.5-4 2 0 3.5 1.5 3.5 4'/></svg>"); }
+    #modePatient::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v3M5 5l2 2M2 12h3M19 5l-2 2M22 12h-3'/><circle cx='12' cy='13' r='5'/></svg>"); }
+    #modePatient.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' stroke='white' stroke-width='1.5' stroke-linejoin='round'><path d='M12 2v3M5 5l2 2M2 12h3M19 5l-2 2M22 12h-3'/><circle cx='12' cy='13' r='5'/></svg>"); }
+    #modeGames::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.8' stroke-linejoin='round'><rect x='4' y='4' width='16' height='16' rx='2.5'/><circle cx='8.5' cy='8.5' r='1.2' fill='white'/><circle cx='15.5' cy='8.5' r='1.2' fill='white'/><circle cx='12' cy='12' r='1.2' fill='white'/><circle cx='8.5' cy='15.5' r='1.2' fill='white'/><circle cx='15.5' cy='15.5' r='1.2' fill='white'/></svg>"); }
+    #modeGames.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' stroke='white' stroke-width='1.5' stroke-linejoin='round'><rect x='4' y='4' width='16' height='16' rx='2.5'/><circle cx='8.5' cy='8.5' r='1.2' fill='%232a4a6a'/><circle cx='15.5' cy='8.5' r='1.2' fill='%232a4a6a'/><circle cx='12' cy='12' r='1.2' fill='%232a4a6a'/><circle cx='8.5' cy='15.5' r='1.2' fill='%232a4a6a'/><circle cx='15.5' cy='15.5' r='1.2' fill='%232a4a6a'/></svg>"); }
 
     /* App-Container: Platz unten für die Tab-Bar */
     .app { padding: 0 0 80px !important; max-width: 100% !important; }
@@ -713,7 +720,7 @@
     <div class="home-tiles">
       <div class="home-tile patient" onclick="switchMode('patient')">
         <div class="home-tile-icon">🌅</div>
-        <h2>Übungen für Karl</h2>
+        <h2>Übungen für <span class="username">Karl</span></h2>
         <p>Gehirnjogging, Erinnerungen und Wissen — Aufgaben passend zum heutigen Tag.</p>
         <div class="home-tile-action">Übungen starten →</div>
       </div>
@@ -739,10 +746,10 @@
       <div class="stat"><div class="stat-value" id="statRate">–</div><div class="stat-label">Trefferquote</div></div>
     </div>
     <div class="ai-panel">
-      <h2>Karls Lernprofil</h2>
-      <p class="lead" style="margin-bottom: 20px;">Übersicht über Karls Übungen — wo er sicher ist und wo er noch Übung braucht.</p>
+      <h2><span class="username-genitive">Karls</span> Lernprofil</h2>
+      <p class="lead" style="margin-bottom: 20px;">Übersicht über <span class="username-genitive">Karls</span> Übungen — wo er sicher ist und wo er noch Übung braucht.</p>
       <div class="skill-bars" id="skillBars"></div>
-      <div class="ai-insight" id="aiInsight">Noch wenige Daten — sobald Karl ein paar Aufgaben gelöst hat, erscheint hier eine Empfehlung.</div>
+      <div class="ai-insight" id="aiInsight">Noch wenige Daten — sobald <span class="username">Karl</span> ein paar Aufgaben gelöst hat, erscheint hier eine Empfehlung.</div>
       <div class="repeat-queue" id="repeatQueue"><strong>Wiederholung von Schwächen:</strong> <span id="repeatList">Aktuell keine Aufgaben in der Warteschleife.</span></div>
       <div class="ai-generator-status hidden">
         <div class="status-dot idle" id="genStatusDot"></div>
@@ -756,7 +763,7 @@
     <div class="grid">
       <div class="card">
         <h2>Personen & Erinnerungen</h2>
-        <p style="color: var(--ink-soft); margin-bottom: 20px; font-size: 14px;">Karl lernt diese Personen wiederzuerkennen.</p>
+        <p style="color: var(--ink-soft); margin-bottom: 20px; font-size: 14px;"><span class="username">Karl</span> lernt diese Personen wiederzuerkennen.</p>
         <div id="photoGrid" class="photo-grid"></div>
       </div>
       <div class="card">
@@ -764,12 +771,12 @@
         <div class="input-group"><label>Name</label><input type="text" id="newName" placeholder="z. B. Anna" /></div>
         <div class="input-group"><label>Beziehung</label><select id="newRelation"><option>Tochter</option><option>Sohn</option><option>Enkel</option><option>Enkelin</option><option>Ehepartner:in</option><option>Geschwister</option><option>Freund:in</option><option>Sonstiges</option></select></div>
         <div class="input-group"><label>Symbol (Initiale)</label><input type="text" id="newInitial" maxlength="2" placeholder="A" /></div>
-        <div class="input-group"><label>Notiz für Karl (optional)</label><textarea id="newNote" rows="2" placeholder="z. B. Annas Lieblingsblume sind Tulpen"></textarea></div>
+        <div class="input-group"><label>Notiz für <span class="username">Karl</span> (optional)</label><textarea id="newNote" rows="2" placeholder="z. B. Annas Lieblingsblume sind Tulpen"></textarea></div>
         <button class="btn btn-accent" onclick="addPerson()">Person speichern</button>
       </div>
     </div>
     <div class="card stage-slider-card" style="margin-top: 20px;">
-      <h2>Wo befindet sich Karl gerade?</h2>
+      <h2>Wo befindet sich <span class="username">Karl</span> gerade?</h2>
       <p style="color: var(--ink-soft); margin-bottom: 8px; font-size: 14px;">Stelle das Stadium der Demenz ein — die Aufgaben werden automatisch entsprechend angepasst.</p>
       <div class="stage-slider-row">
         <div style="text-align: center;">
@@ -791,10 +798,10 @@
 
     <div class="card" style="margin-top: 20px;">
       <h2>Aufgaben-Auswahl</h2>
-      <p style="color: var(--ink-soft); margin-bottom: 20px; font-size: 14px;">Welche Übungen darf Karl bekommen? Die kleine Zahl rechts ist sein aktuelles Niveau (1 = leicht, 5 = schwer).</p>
+      <p style="color: var(--ink-soft); margin-bottom: 20px; font-size: 14px;">Welche Übungen darf <span class="username">Karl</span> bekommen? Die kleine Zahl rechts ist sein aktuelles Niveau (1 = leicht, 5 = schwer).</p>
       <div class="task-types" id="taskTypes"></div>
       <div style="font-size: 13px; color: var(--ink-soft); padding: 12px; background: var(--bg); border-radius: 10px;">
-        Falsch beantwortete Fragen tauchen automatisch nach kurzer Zeit erneut auf — und Personen, die Karl nicht erkannt hat, kommen nach 18-25 Aufgaben gezielt zurück.
+        Falsch beantwortete Fragen tauchen automatisch nach kurzer Zeit erneut auf — und Personen, die <span class="username">Karl</span> nicht erkannt hat, kommen nach 18-25 Aufgaben gezielt zurück.
       </div>
       <div style="margin-top: 16px;">
         <button class="btn btn-secondary" onclick="resetLearning()" style="font-size: 13px; padding: 8px 16px;">↺ Lernfortschritt zurücksetzen</button>
@@ -823,7 +830,7 @@
     <div id="gameMenu">
       <div class="game-picker">
         <div class="game-tile" onclick="startMemory()"><div class="game-tile-icon">🎴</div><h3>Memory</h3><p>Finde die passenden Paare gegen den Computer.</p></div>
-        <div class="game-tile" onclick="startUno()"><div class="game-tile-icon">🃏</div><h3>Karten ablegen</h3><p>Wie bei UNO: Karten passend ablegen.</p></div>
+        <div class="game-tile" onclick="startUno()"><div class="game-tile-icon">♠♥♦♣</div><h3>Karten ablegen</h3><p>Wie bei UNO: Karten passend ablegen.</p></div>
         <div class="game-tile" onclick="startConnect4()"><div class="game-tile-icon">🔵</div><h3>Vier gewinnt</h3><p>Vier Steine in eine Reihe.</p></div>
         <div class="game-tile" onclick="startTicTacToe()"><div class="game-tile-icon">⭕</div><h3>Tic Tac Toe</h3><p>Drei in einer Reihe — der Klassiker.</p></div>
         <div class="game-tile" onclick="startWordChain()"><div class="game-tile-icon">🔤</div><h3>Wortkette</h3><p>Letzter Buchstabe wird neuer Anfangsbuchstabe.</p></div>
@@ -945,8 +952,8 @@
     </div>
   </main>
 </div>
-<script src="images.js?v=20260519j"></script>
-<script src="app.js?v=20260519j"></script>
+<script src="images.js?v=20260519k"></script>
+<script src="app.js?v=20260519k"></script>
 
 <!-- Notfall-Auth-Handler: registriert Click-Listener für Auth-Buttons.
      Funktioniert auch wenn app.js gerade noch lädt. -->

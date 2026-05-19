@@ -4341,8 +4341,16 @@ function renderUno() {
   document.getElementById('unoDrawBtn').disabled = unoState.turn !== 'player' || unoState.awaitingColorChoice;
 }
 function renderUnoCard(c, playable) {
-  const v = c.value === '+2' ? '+2' : c.value === '+4' ? '+4' : c.value === 'skip' ? '⊘' : c.value === 'reverse' ? '↺' : c.value === 'wild' ? '✦' : c.value;
-  return `<div class="uno-card ${c.color}${playable ? ' playable' : ''}"><span class="corner-top">${v}</span><span class="center">${v}</span><span class="corner-bottom">${v}</span></div>`;
+  // Standard-Spielkarten-Symbole pro Farbe
+  const symbols = { red: '♥', blue: '♠', green: '♣', yellow: '♦', wild: '★' };
+  const symbol = symbols[c.color] || '';
+  // Wert anzeigen: Zahlen direkt, Aktions-Karten als Buchstaben
+  const v = c.value === '+2' ? '+2' : c.value === '+4' ? '+4' : c.value === 'skip' ? '⊘' : c.value === 'reverse' ? '↺' : c.value === 'wild' ? '★' : c.value;
+  return `<div class="uno-card ${c.color}${playable ? ' playable' : ''}">
+    <span class="corner-top">${v}<br>${symbol}</span>
+    <span class="center">${symbol}</span>
+    <span class="corner-bottom">${v}<br>${symbol}</span>
+  </div>`;
 }
 function colorOf(c) {
   return c === 'red' ? '#c8553d' : c === 'blue' ? '#3d6ec8' : c === 'green' ? '#588157' : c === 'yellow' ? '#d4a017' : 'linear-gradient(135deg, #c8553d, #d4a017, #588157, #3d6ec8)';
@@ -5824,10 +5832,18 @@ async function initApp() {
   try { renderDate(); } catch(e) { console.error('[Memovia] renderDate:', e); }
   try {
     if (currentUser) {
+      const name = currentUser.name || 'Karl';
+      // Username im Header
       const nameEl = document.getElementById('accountName');
-      if (nameEl) nameEl.textContent = currentUser.name;
+      if (nameEl) nameEl.textContent = name;
+      // Username in allen Texten ersetzen
+      document.querySelectorAll('.username').forEach(el => { el.textContent = name; });
+      // Genitiv: bei Namen die auf s, ß, z, x enden nur Apostroph, sonst +s
+      const lastChar = name.slice(-1).toLowerCase();
+      const genitive = ['s','ß','z','x'].includes(lastChar) ? name + '\'' : name + 's';
+      document.querySelectorAll('.username-genitive').forEach(el => { el.textContent = genitive; });
     }
-  } catch(e) { console.error('[Memovia] accountName:', e); }
+  } catch(e) { console.error('[Memovia] username:', e); }
   try { switchMode('home'); } catch(e) { console.error('[Memovia] switchMode:', e); }
   // Hintergrund-KI nach kurzer Wartezeit (läuft still im Hintergrund)
   setTimeout(() => {
