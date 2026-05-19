@@ -4140,11 +4140,11 @@ function enterGame() {
 
 function exitGame() {
   document.body.classList.remove('game-active');
-  ['memoryGame','unoGame','connect4Game','tttGame','wordChainGame','crosswordGame','checkersGame','kniffelGame'].forEach(id => {
+  ['memoryGame','unoGame','connect4Game','tttGame','wordChainGame','crosswordGame','checkersGame','kniffelGame','rpsGame','hangmanGame'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
-  ['memOver','unoOver','c4Over','tttOver','wsOver','cwOver','ckOver','knOver'].forEach(hideGameOver);
+  ['memOver','unoOver','c4Over','tttOver','wsOver','cwOver','ckOver','knOver','rpsOver','hmOver'].forEach(hideGameOver);
   document.getElementById('gameMenu').classList.remove('hidden');
 }
 
@@ -5241,6 +5241,202 @@ const KNIFFEL_CATEGORIES = [
   { id: 'chance',  name: 'Chance',  desc: 'Summe aller Würfel', group: 'unten' },
 ];
 
+// ===========================================================================
+// SCHERE STEIN PAPIER (Best of 5 gegen KI)
+// ===========================================================================
+let rpsState = null;
+function startRps() {
+  enterGame();
+  document.getElementById('rpsGame').classList.remove('hidden');
+  hideGameOver('rpsOver');
+  rpsState = { you: 0, ai: 0, round: 1, lastPlays: [] };
+  rpsUpdateUI();
+  document.getElementById('rpsYouEmoji').textContent = '✊';
+  document.getElementById('rpsAiEmoji').textContent = '✊';
+  document.getElementById('rpsResult').textContent = 'Wählen Sie: Stein, Papier oder Schere';
+  document.getElementById('rpsResult').className = 'rps-result';
+}
+
+function rpsUpdateUI() {
+  document.getElementById('rpsYouScore').textContent = rpsState.you;
+  document.getElementById('rpsAiScore').textContent = rpsState.ai;
+  document.getElementById('rpsRound').textContent = Math.min(rpsState.round, 5);
+}
+
+function rpsPlay(choice) {
+  if (!rpsState || rpsState.round > 5) return;
+
+  // KI: 70% zufällig, 30% versucht zu kontern (wenn letzter Zug bekannt)
+  const moves = ['rock', 'paper', 'scissors'];
+  let aiChoice;
+  if (rpsState.lastPlays.length > 0 && Math.random() < 0.3) {
+    // Counter zum letzten Zug
+    const lastYou = rpsState.lastPlays[rpsState.lastPlays.length - 1];
+    aiChoice = lastYou === 'rock' ? 'paper' : lastYou === 'paper' ? 'scissors' : 'rock';
+  } else {
+    aiChoice = moves[rndInt(0, 2)];
+  }
+  rpsState.lastPlays.push(choice);
+
+  // Animation: beide schütteln
+  const youSide = document.querySelectorAll('.rps-side')[0];
+  const aiSide = document.querySelectorAll('.rps-side')[1];
+  const youEmoji = document.getElementById('rpsYouEmoji');
+  const aiEmoji = document.getElementById('rpsAiEmoji');
+  youSide.classList.remove('shake'); aiSide.classList.remove('shake');
+  void youSide.offsetWidth;
+  youSide.classList.add('shake'); aiSide.classList.add('shake');
+
+  // Während Animation: zufällige Emojis
+  const emojiMap = { rock: '✊', paper: '✋', scissors: '✌️' };
+  let tickCount = 0;
+  const tickInterval = setInterval(() => {
+    youEmoji.textContent = emojiMap[moves[tickCount % 3]];
+    aiEmoji.textContent = emojiMap[moves[(tickCount + 1) % 3]];
+    tickCount++;
+  }, 100);
+
+  setTimeout(() => {
+    clearInterval(tickInterval);
+    youEmoji.textContent = emojiMap[choice];
+    aiEmoji.textContent = emojiMap[aiChoice];
+
+    // Wer gewinnt?
+    let result;
+    if (choice === aiChoice) result = 'tie';
+    else if (
+      (choice === 'rock' && aiChoice === 'scissors') ||
+      (choice === 'paper' && aiChoice === 'rock') ||
+      (choice === 'scissors' && aiChoice === 'paper')
+    ) result = 'win';
+    else result = 'lose';
+
+    const resultEl = document.getElementById('rpsResult');
+    if (result === 'win') {
+      rpsState.you++;
+      resultEl.textContent = '🎉 Sie gewinnen diese Runde!';
+      resultEl.className = 'rps-result win';
+    } else if (result === 'lose') {
+      rpsState.ai++;
+      resultEl.textContent = '😔 Computer gewinnt diese Runde';
+      resultEl.className = 'rps-result lose';
+    } else {
+      resultEl.textContent = '🤝 Unentschieden';
+      resultEl.className = 'rps-result tie';
+    }
+
+    if (result !== 'tie') rpsState.round++;
+    rpsUpdateUI();
+
+    // Spielende?
+    if (rpsState.you >= 3 || rpsState.ai >= 3 || rpsState.round > 5) {
+      setTimeout(() => {
+        if (rpsState.you > rpsState.ai) {
+          showGameOver('rpsOver', '🏆', 'Gewonnen!', `${rpsState.you} zu ${rpsState.ai} — sehr gut!`, 'startRps');
+        } else if (rpsState.ai > rpsState.you) {
+          showGameOver('rpsOver', '🤖', 'Computer gewinnt', `${rpsState.you} zu ${rpsState.ai} — nochmal probieren?`, 'startRps');
+        } else {
+          showGameOver('rpsOver', '🤝', 'Unentschieden!', `Beide bei ${rpsState.you} Punkten.`, 'startRps');
+        }
+      }, 800);
+    }
+  }, 600);
+}
+
+// ===========================================================================
+// GALGENMÄNNCHEN
+// ===========================================================================
+const HANGMAN_WORDS = [
+  { word: 'BLUME', hint: 'Wächst im Garten und duftet' },
+  { word: 'KAFFEE', hint: 'Morgens beliebtes Heißgetränk' },
+  { word: 'KIRCHE', hint: 'Hier wird sonntags Gottesdienst gefeiert' },
+  { word: 'BROT', hint: 'Wird beim Bäcker gekauft' },
+  { word: 'SOMMER', hint: 'Die wärmste Jahreszeit' },
+  { word: 'FAMILIE', hint: 'Eltern, Kinder, Großeltern' },
+  { word: 'HUND', hint: 'Bester Freund des Menschen' },
+  { word: 'BERGE', hint: 'Hohe Erhebungen, z.B. die Alpen' },
+  { word: 'MUSIK', hint: 'Klänge und Melodien' },
+  { word: 'GARTEN', hint: 'Grünfläche hinter dem Haus' },
+  { word: 'WEIHNACHTEN', hint: 'Fest im Dezember mit Geschenken' },
+  { word: 'OSTERN', hint: 'Frühlingsfest mit Eiern und Hasen' },
+  { word: 'KARTOFFEL', hint: 'Beliebte Beilage, auch als Pommes' },
+  { word: 'ZEITUNG', hint: 'Wird morgens am Frühstückstisch gelesen' },
+  { word: 'BAHNHOF', hint: 'Hier fahren Züge ab' },
+  { word: 'APOTHEKE', hint: 'Hier gibt es Medikamente' },
+  { word: 'KUCHEN', hint: 'Süßes Backwerk zum Kaffee' },
+  { word: 'ARZT', hint: 'Hilft wenn man krank ist' },
+  { word: 'SCHULE', hint: 'Hier lernen Kinder' },
+  { word: 'WALD', hint: 'Viele Bäume zusammen' },
+];
+const HANGMAN_PARTS = ['hmHead', 'hmBody', 'hmArmL', 'hmArmR', 'hmLegL', 'hmLegR'];
+let hmState = null;
+
+function startHangman() {
+  enterGame();
+  document.getElementById('hangmanGame').classList.remove('hidden');
+  hideGameOver('hmOver');
+  const entry = HANGMAN_WORDS[rndInt(0, HANGMAN_WORDS.length - 1)];
+  hmState = {
+    word: entry.word,
+    hint: entry.hint,
+    guessed: new Set(),
+    wrong: 0,
+  };
+  // Galgenmännchen-Teile alle ausblenden
+  HANGMAN_PARTS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  document.getElementById('hmHint').textContent = 'Hinweis: ' + entry.hint;
+  hmRender();
+}
+
+function hmRender() {
+  // Wort anzeigen
+  const wordDisplay = hmState.word.split('').map(c => hmState.guessed.has(c) ? c : '_').join(' ');
+  document.getElementById('hmWord').textContent = wordDisplay;
+
+  // Tastatur
+  const kb = document.getElementById('hmKeyboard');
+  kb.innerHTML = '';
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ';
+  for (const c of letters) {
+    const btn = document.createElement('button');
+    btn.className = 'hm-key';
+    btn.textContent = c;
+    if (hmState.guessed.has(c)) {
+      btn.disabled = true;
+      btn.classList.add(hmState.word.includes(c) ? 'correct' : 'wrong');
+    } else {
+      btn.onclick = () => hmGuess(c);
+    }
+    kb.appendChild(btn);
+  }
+
+  // Gewonnen?
+  if (hmState.word.split('').every(c => hmState.guessed.has(c))) {
+    setTimeout(() => {
+      showGameOver('hmOver', '🎉', 'Gewonnen!', `Das Wort war: ${hmState.word}`, 'startHangman');
+    }, 300);
+  } else if (hmState.wrong >= HANGMAN_PARTS.length) {
+    setTimeout(() => {
+      showGameOver('hmOver', '💀', 'Leider verloren', `Das Wort war: ${hmState.word}`, 'startHangman');
+    }, 300);
+  }
+}
+
+function hmGuess(c) {
+  if (hmState.guessed.has(c)) return;
+  hmState.guessed.add(c);
+  if (!hmState.word.includes(c)) {
+    // Falsche Buchstabe: nächstes Galgenmännchen-Teil zeigen
+    const part = document.getElementById(HANGMAN_PARTS[hmState.wrong]);
+    if (part) part.style.display = '';
+    hmState.wrong++;
+  }
+  hmRender();
+}
+
 function startKniffel() {
   enterGame();
   document.getElementById('kniffelGame').classList.remove('hidden');
@@ -5641,8 +5837,11 @@ function renderKniffelDiceOnly() {
   if (!diceEl) return;
   diceEl.innerHTML = '';
   for (let i = 0; i < 5; i++) {
-    const die = knBuildDie(knState.dice[i], knState.held[i], true);
-    diceEl.appendChild(die);
+    // Nur die nicht-gehaltenen Würfel im Becher anzeigen während der Animation
+    if (!knState.held[i]) {
+      const die = knBuildDie(knState.dice[i], false, true);
+      diceEl.appendChild(die);
+    }
   }
 }
 
@@ -5669,48 +5868,68 @@ function renderKniffel() {
     ? '👤 <strong>Sie sind dran</strong>'
     : '🤖 <strong>Computer ist dran</strong>' + (knState.aiThinking ? ' — denkt nach…' : '');
 
-  // Würfel
+  // Würfel trennen: gehaltene oben, aktive im Becher
+  const heldEl = document.getElementById('knHeldDice');
   const diceEl = document.getElementById('knDice');
+  heldEl.innerHTML = '';
   diceEl.innerHTML = '';
+
   for (let i = 0; i < 5; i++) {
     const disabled = !knState.hasRolled || knState.rollsLeft === 0 || !isYou;
-    const die = knBuildDie(knState.dice[i], knState.held[i], disabled, isYou ? i : undefined);
-    diceEl.appendChild(die);
+    const die = knBuildDie(knState.dice[i], false, disabled, isYou ? i : undefined);
+    if (knState.held[i]) {
+      // Gehaltener Würfel: oben einsortieren, kein Pin nötig
+      heldEl.appendChild(die);
+    } else {
+      // Aktiver Würfel: im Becher anzeigen
+      diceEl.appendChild(die);
+    }
   }
 
   // Becher und Würfel-Button
   const cup = document.getElementById('knCup');
+  const cupContainer = document.getElementById('knCupContainer');
   const cupLabel = document.getElementById('knCupLabel');
+  const heldLabel = document.getElementById('knHeldLabel');
   const rollBtn = document.getElementById('knRollBtn');
   const help = document.getElementById('knHelp');
+  const heldArea = document.querySelector('.kn-held-area');
+
+  // Held-Area nur zeigen wenn schon gewürfelt wurde
+  heldArea.style.display = (knState.hasRolled && isYou) ? '' : 'none';
 
   if (!isYou) {
-    // KI dran: Würfel zeigen, Becher verstecken
-    diceEl.style.display = '';
-    cup.style.display = 'none';
-    cupLabel.style.display = 'none';
+    // KI dran: Würfel zeigen, keinen Becher-Klick erlauben
+    cupContainer.style.display = '';
+    cupContainer.style.pointerEvents = 'none';
+    cup.style.opacity = '0.6';
+    cupLabel.textContent = knState.aiThinking ? '🤖 Computer würfelt…' : '🤖 Computer ist dran';
     rollBtn.style.display = 'none';
-    help.textContent = '🤖 Computer würfelt und entscheidet selbst.';
+    help.textContent = '';
   } else if (knState.rollsLeft > 0 && !knState.hasRolled) {
-    diceEl.style.display = 'none';
-    cup.style.display = '';
-    cupLabel.style.display = '';
-    cupLabel.textContent = `Runde ${knState.round} von 13 — Tippen Sie auf den Becher 🥃`;
+    // Erster Wurf: nur Becher zeigen
+    cupContainer.style.display = '';
+    cupContainer.style.pointerEvents = '';
+    cup.style.opacity = '1';
+    cupLabel.textContent = `Runde ${knState.round} — Becher antippen zum Würfeln`;
     rollBtn.style.display = 'none';
     help.textContent = '';
   } else if (knState.rollsLeft > 0 && knState.hasRolled) {
-    diceEl.style.display = '';
-    cup.style.display = 'none';
-    cupLabel.style.display = 'none';
-    rollBtn.style.display = '';
-    rollBtn.textContent = `🥃 Nochmal würfeln (${knState.rollsLeft} übrig)`;
-    help.textContent = 'Tippen Sie Würfel an um sie zu behalten (📌). Oder wählen Sie unten eine Kategorie.';
-  } else {
-    diceEl.style.display = '';
-    cup.style.display = 'none';
-    cupLabel.style.display = 'none';
+    // Mitten in Runde: Becher mit aktiven Würfeln, Nochmal-Button
+    cupContainer.style.display = '';
+    cupContainer.style.pointerEvents = '';
+    cup.style.opacity = '1';
+    cupLabel.textContent = `${knState.rollsLeft} Wurf${knState.rollsLeft === 1 ? '' : 'e'} übrig — Becher antippen oder Würfel halten`;
     rollBtn.style.display = 'none';
-    help.textContent = 'Keine Würfe mehr — wählen Sie unten eine Kategorie.';
+    help.textContent = '💡 Würfel antippen zum Halten. Sonst Becher schütteln für nächsten Wurf.';
+  } else {
+    // Keine Würfe mehr: nur Würfel sichtbar
+    cupContainer.style.display = '';
+    cupContainer.style.pointerEvents = 'none';
+    cup.style.opacity = '0.4';
+    cupLabel.textContent = 'Keine Würfe mehr';
+    rollBtn.style.display = 'none';
+    help.textContent = '👇 Wählen Sie unten eine Kategorie zum Eintragen.';
   }
 
   // Wertungsblatt — zeigt BEIDE Spalten
