@@ -4129,9 +4129,20 @@ function hideGameOver(containerId) {
   c.innerHTML = '';
 }
 
+// Wird vor jedem Spielstart aufgerufen: blendet App-Chrome aus
+function enterGame() {
+  document.body.classList.add('game-active');
+  const menu = document.getElementById('gameMenu');
+  if (menu) menu.classList.add('hidden');
+  // Nach oben scrollen, damit das Spiel komplett sichtbar ist
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
 function exitGame() {
+  document.body.classList.remove('game-active');
   ['memoryGame','unoGame','connect4Game','tttGame','wordChainGame','crosswordGame','checkersGame','kniffelGame'].forEach(id => {
-    document.getElementById(id).classList.add('hidden');
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
   });
   ['memOver','unoOver','c4Over','tttOver','wsOver','cwOver','ckOver','knOver'].forEach(hideGameOver);
   document.getElementById('gameMenu').classList.remove('hidden');
@@ -4142,7 +4153,7 @@ function exitGame() {
 // ===========================================================================
 let memState = null;
 function startMemory() {
-  document.getElementById('gameMenu').classList.add('hidden');
+  enterGame();
   document.getElementById('memoryGame').classList.remove('hidden');
   hideGameOver('memOver');
   const symbols = ['🌻','🐱','🍎','⭐','🌙','🎵','🐝','🦋'];
@@ -4280,7 +4291,7 @@ function memAiTurn() {
 let unoState = null;
 
 function startUno() {
-  document.getElementById('gameMenu').classList.add('hidden');
+  enterGame();
   document.getElementById('unoGame').classList.remove('hidden');
   hideGameOver('unoOver');
   document.getElementById('unoColorPicker').classList.add('hidden');
@@ -4448,7 +4459,7 @@ function unoAiTurn() {
 // ===========================================================================
 let c4State = null;
 function startConnect4() {
-  document.getElementById('gameMenu').classList.add('hidden');
+  enterGame();
   document.getElementById('connect4Game').classList.remove('hidden');
   hideGameOver('c4Over');
   c4State = { board: Array(6).fill(0).map(() => Array(7).fill(null)), turn: 'you', over: false };
@@ -4542,7 +4553,7 @@ function c4AiMove() {
 // ===========================================================================
 let tttState = null;
 function startTicTacToe() {
-  document.getElementById('gameMenu').classList.add('hidden');
+  enterGame();
   document.getElementById('tttGame').classList.remove('hidden');
   hideGameOver('tttOver');
   tttState = { board: Array(9).fill(null), turn: 'you', over: false };
@@ -4613,7 +4624,7 @@ const WS_DICTIONARY = [
 ];
 let wsState = null;
 function startWordChain() {
-  document.getElementById('gameMenu').classList.add('hidden');
+  enterGame();
   document.getElementById('wordChainGame').classList.remove('hidden');
   hideGameOver('wsOver');
   const start = pickRandom(['Sonne','Banane','Apfel','Garten','Kaffee','Wolke','Tisch']);
@@ -4717,7 +4728,7 @@ const CROSSWORDS = [
 let cwState = null;
 
 function startCrossword() {
-  document.getElementById('gameMenu').classList.add('hidden');
+  enterGame();
   document.getElementById('crosswordGame').classList.remove('hidden');
   hideGameOver('cwOver');
   const puzzle = pickRandom(CROSSWORDS);
@@ -4903,7 +4914,7 @@ function cwAnswer(choice) {
 let ckState = null;
 
 function startCheckers() {
-  document.getElementById('gameMenu').classList.add('hidden');
+  enterGame();
   document.getElementById('checkersGame').classList.remove('hidden');
   hideGameOver('ckOver');
   // Brett initialisieren — Steine nur auf dunklen Feldern (r+c ungerade)
@@ -5223,7 +5234,7 @@ const KNIFFEL_CATEGORIES = [
 ];
 
 function startKniffel() {
-  document.getElementById('gameMenu').classList.add('hidden');
+  enterGame();
   document.getElementById('kniffelGame').classList.remove('hidden');
   hideGameOver('knOver');
   knState = {

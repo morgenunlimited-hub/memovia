@@ -32,6 +32,40 @@
   .brand-logo { height: 44px; width: auto; display: block; }
   .home-hero { text-align: center; margin: 12px 0 20px; }
   .home-logo { width: 200px; max-width: 60%; height: auto; display: block; margin: 0 auto; }
+  .view-hero { text-align: center; margin: 12px 0 16px; }
+  .view-hero-logo { height: 50px; width: auto; max-width: 60%; display: block; margin: 0 auto; filter: drop-shadow(0 4px 10px rgba(0,0,0,.25)); }
+  @media (max-width: 540px) {
+    .view-hero { margin: 8px 0 12px; }
+    .view-hero-logo { height: 36px; }
+  }
+
+  /* === GAME-ACTIVE MODE ===
+     Wenn ein Spiel läuft, verschwindet alles außer dem Spiel selbst.
+     Scrollen wird gesperrt damit das Spiel den ganzen Bildschirm füllt. */
+  body.game-active { overflow: hidden !important; touch-action: none !important; position: fixed; width: 100%; }
+  body.game-active header,
+  body.game-active .view-hero,
+  body.game-active .mode-switch { display: none !important; }
+  body.game-active #gamesView { padding: 0 !important; margin: 0 !important; }
+  body.game-active #mainApp { padding-top: env(safe-area-inset-top) !important; padding-bottom: env(safe-area-inset-bottom) !important; height: 100vh; height: 100dvh; overflow: hidden; }
+  body.game-active .app { padding: 0 !important; max-width: 100% !important; height: 100vh; height: 100dvh; }
+  body.game-active main { height: 100% !important; }
+  /* Das aktive Spiel füllt den Bildschirm */
+  body.game-active #gamesView > div:not(.hidden) {
+    background: var(--bg-card);
+    border-radius: 0;
+    margin: 0 !important;
+    padding: 12px 14px !important;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+  /* Spieltexte und Buttons schwarz */
+  body.game-active h2, body.game-active h3, body.game-active h4 { color: var(--ink) !important; }
+  body.game-active .btn-secondary, body.game-active .btn-accent { color: var(--ink) !important; }
+  body.game-active .game-status div span { color: var(--ink) !important; }
+  body.game-active .kn-row .kn-name, body.game-active .kn-row .kn-points-final, body.game-active .kn-row .kn-points-input { color: var(--ink) !important; }
   .logout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); padding: 6px 10px; border-radius: 999px; font-size: 13px; font-family: inherit; cursor: pointer; line-height: 1; }
   .logout-btn:hover { background: var(--bg); color: var(--ink); }
   @media (max-width: 540px) {
@@ -44,7 +78,7 @@
     .logout-btn { padding: 6px 10px; font-size: 14px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); color: white; }
     .logout-btn:hover { background: rgba(255,255,255,.2); color: white; }
 
-    /* Mode-Switch wird zur Tab-Bar UNTEN am Bildschirm */
+    /* Mode-Switch wird zur Tab-Bar UNTEN am Bildschirm — Instagram-Stil */
     .mode-switch {
       position: fixed !important;
       bottom: 0; left: 0; right: 0;
@@ -53,28 +87,47 @@
       border-radius: 0 !important;
       border: none !important;
       border-top: 1px solid var(--line) !important;
-      padding: 6px 6px calc(6px + env(safe-area-inset-bottom)) 6px !important;
+      padding: 8px 0 calc(8px + env(safe-area-inset-bottom)) 0 !important;
       gap: 0 !important;
-      box-shadow: 0 -4px 20px rgba(0,0,0,.15);
+      box-shadow: 0 -4px 20px rgba(0,0,0,.12);
       z-index: 100;
+      flex-wrap: nowrap !important;
     }
     .mode-switch button {
       flex: 1 !important;
-      padding: 8px 4px !important;
-      font-size: 11px !important;
-      border-radius: 12px !important;
-      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 6px 2px !important;
+      font-size: 10px !important;
+      border-radius: 0 !important;
+      display: flex !important; flex-direction: column !important; align-items: center !important; gap: 3px !important;
       min-width: 0;
+      color: var(--ink-soft) !important;
+      background: transparent !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.02em;
     }
-    .mode-switch button.active { background: var(--accent) !important; color: white !important; }
-    /* Icon vor Text in Tab-Bar */
-    .mode-switch button::before { font-size: 18px; line-height: 1; }
-    #modeHome::before { content: '🏠'; }
-    #modeFamily::before { content: '👥'; }
-    #modePatient::before { content: '🌅'; }
-    #modeGames::before { content: '🎲'; }
+    .mode-switch button.active {
+      background: transparent !important;
+      color: var(--ink) !important;
+      font-weight: 700 !important;
+    }
+    /* Icons als saubere SVGs */
+    .mode-switch button::before {
+      content: '';
+      display: block;
+      width: 26px; height: 26px;
+      background-repeat: no-repeat; background-position: center; background-size: contain;
+    }
+    .mode-switch button.active::before { transform: scale(1.05); }
+    #modeHome::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a4a3a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z'/></svg>"); }
+    #modeHome.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a2520' stroke='%232a2520' stroke-width='1.5' stroke-linejoin='round'><path d='M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z'/></svg>"); }
+    #modeFamily::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a4a3a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='9' cy='8' r='3'/><circle cx='17' cy='9' r='2.5'/><path d='M3 20c0-3 3-5 6-5s6 2 6 5'/><path d='M14 19c.5-2.5 2-4 3.5-4 2 0 3.5 1.5 3.5 4'/></svg>"); }
+    #modeFamily.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a2520' stroke='%232a2520' stroke-width='1.5' stroke-linejoin='round'><circle cx='9' cy='8' r='3'/><circle cx='17' cy='9' r='2.5'/><path d='M3 20c0-3 3-5 6-5s6 2 6 5'/><path d='M14 19c.5-2.5 2-4 3.5-4 2 0 3.5 1.5 3.5 4'/></svg>"); }
+    #modePatient::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a4a3a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v3M5 5l2 2M2 12h3M19 5l-2 2M22 12h-3'/><circle cx='12' cy='13' r='5'/></svg>"); }
+    #modePatient.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a2520' stroke='%232a2520' stroke-width='1.5' stroke-linejoin='round'><path d='M12 2v3M5 5l2 2M2 12h3M19 5l-2 2M22 12h-3'/><circle cx='12' cy='13' r='5'/></svg>"); }
+    #modeGames::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a4a3a' stroke-width='1.8' stroke-linejoin='round'><rect x='4' y='4' width='16' height='16' rx='2.5'/><circle cx='8.5' cy='8.5' r='1.2' fill='%235a4a3a'/><circle cx='15.5' cy='8.5' r='1.2' fill='%235a4a3a'/><circle cx='12' cy='12' r='1.2' fill='%235a4a3a'/><circle cx='8.5' cy='15.5' r='1.2' fill='%235a4a3a'/><circle cx='15.5' cy='15.5' r='1.2' fill='%235a4a3a'/></svg>"); }
+    #modeGames.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a2520' stroke='%232a2520' stroke-width='1.5' stroke-linejoin='round'><rect x='4' y='4' width='16' height='16' rx='2.5'/><circle cx='8.5' cy='8.5' r='1.2' fill='white'/><circle cx='15.5' cy='8.5' r='1.2' fill='white'/><circle cx='12' cy='12' r='1.2' fill='white'/><circle cx='8.5' cy='15.5' r='1.2' fill='white'/><circle cx='15.5' cy='15.5' r='1.2' fill='white'/></svg>"); }
 
-    /* App-Container: bisschen Platz unten für die Tab-Bar */
+    /* App-Container: Platz unten für die Tab-Bar */
     .app { padding: 0 12px 80px !important; }
     main { padding: 0 !important; }
 
@@ -653,10 +706,8 @@
   </main>
 
   <main id="familyView" class="hidden">
-    <div style="margin-bottom: 36px;">
-      <span class="pill">Angehörigen-Bereich</span>
-      <h1 style="margin-top: 12px;">Hallo Lisa, hier ist <em>Opa Karls</em> Welt.</h1>
-      <p class="lead">Pflege Erinnerungen, Personen und Aufgaben — was du hier hinterlegst, sieht Karl in seiner App.</p>
+    <div class="view-hero">
+      <img src="logo.png" alt="Memovia" class="view-hero-logo">
     </div>
     <div class="stat-row">
       <div class="stat"><div class="stat-value" id="statPhotos">0</div><div class="stat-label">Bilder hinterlegt</div></div>
@@ -745,9 +796,9 @@
   </main>
 
   <main id="gamesView" class="games-view hidden">
-    <span class="pill">Spiele-Bereich</span>
-    <h1 style="margin-top: 16px;">Lust auf <em>ein Spiel</em>, Karl?</h1>
-    <p class="lead">Such dir ein Spiel aus — wir spielen zusammen.</p>
+    <div class="view-hero">
+      <img src="logo.png" alt="Memovia" class="view-hero-logo">
+    </div>
     <div id="gameMenu">
       <div class="game-picker">
         <div class="game-tile" onclick="startMemory()"><div class="game-tile-icon">🎴</div><h3>Memory</h3><p>Finde die passenden Paare gegen den Computer.</p></div>
@@ -873,8 +924,8 @@
     </div>
   </main>
 </div>
-<script src="images.js?v=20260518f"></script>
-<script src="app.js?v=20260518f"></script>
+<script src="images.js?v=20260519h"></script>
+<script src="app.js?v=20260519h"></script>
 
 <!-- Notfall-Auth-Handler: registriert Click-Listener für Auth-Buttons.
      Funktioniert auch wenn app.js gerade noch lädt. -->
