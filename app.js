@@ -90,16 +90,46 @@ async function authSaveAccounts(accounts) {
 }
 
 async function authRegister(email, password, name) {
-  // E-Mail-Format prüfen: muss xxx@yyy.zz haben
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  // 1. Grundformat prüfen
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
   if (!emailPattern.test(email)) {
     throw new Error('Bitte eine gültige E-Mail-Adresse eingeben (z.B. name@email.de).');
   }
+  // 2. Domain-Endung prüfen — bekannte gültige TLDs
+  const lowerEmail = email.toLowerCase();
+  const tld = lowerEmail.split('.').pop();
+  const validTlds = ['de','com','org','net','at','ch','eu','io','app','dev','info','biz','me','co','uk','us','ca','fr','it','es','nl','be','dk','se','no','fi','pl','cz','jp','cn','au','nz','br','mx','ar','edu','gov','mil','ai','xyz','online','site','shop','blog','tech','cloud','digital','life','live','news','today','tv','email','mail','academy','school','university','health','company','agency','studio','design'];
+  if (!validTlds.includes(tld)) {
+    throw new Error('Die Domain-Endung „.' + tld + '" wird nicht erkannt. Bitte echte E-Mail-Adresse verwenden.');
+  }
+  // 3. Häufige Tippfehler bei großen Anbietern abfangen
+  const typoMap = {
+    'gmial.com': 'gmail.com', 'gmal.com': 'gmail.com', 'gmaill.com': 'gmail.com', 'gmai.com': 'gmail.com',
+    'gmial.de': 'gmail.com', 'gmial.com.de': 'gmail.com',
+    'yahooo.com': 'yahoo.com', 'yaho.com': 'yahoo.com', 'yaoo.com': 'yahoo.com',
+    'hotmial.com': 'hotmail.com', 'hotmai.com': 'hotmail.com', 'hotnail.com': 'hotmail.com',
+    'gmx.dee': 'gmx.de', 'gmx.ed': 'gmx.de',
+    'web.dee': 'web.de', 'webb.de': 'web.de',
+    't-online.dee': 't-online.de', 'tonline.de': 't-online.de',
+    'outlok.com': 'outlook.com', 'outloo.com': 'outlook.com',
+    'icloud.de': 'icloud.com', 'iclud.com': 'icloud.com',
+  };
+  const domain = lowerEmail.split('@')[1];
+  if (typoMap[domain]) {
+    throw new Error('Meinten Sie „' + lowerEmail.split('@')[0] + '@' + typoMap[domain] + '"? Bitte E-Mail korrigieren.');
+  }
+  // 4. Lokal-Teil mindestens 2 Zeichen
+  const local = lowerEmail.split('@')[0];
+  if (local.length < 2) {
+    throw new Error('Der Teil vor dem @ ist zu kurz.');
+  }
+  // 5. Passwort
   if (password.length < 6) {
     throw new Error('Das Passwort muss mindestens 6 Zeichen lang sein.');
   }
+  // 6. Account-Check
   const accounts = await authLoadAccounts();
-  if (accounts.some(a => a.email.toLowerCase() === email.toLowerCase())) {
+  if (accounts.some(a => a.email.toLowerCase() === lowerEmail)) {
     throw new Error('Diese E-Mail ist bereits registriert.');
   }
   const hash = await hashPassword(password);

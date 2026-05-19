@@ -20,10 +20,11 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; height: 100dvh; overflow-x: hidden; max-width: 100vw; margin: 0; padding: 0; }
-  html { overscroll-behavior: none; background: #2a4a6a; }
-  body { font-family: 'Outfit', sans-serif; background: #2a4a6a; color: var(--ink); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; overscroll-behavior: none; -webkit-text-size-adjust: 100%; touch-action: pan-y; min-height: 100vh; min-height: 100dvh; }
-  /* Wenn die App eingeloggt ist, kommt der cremefarbene Hintergrund vom mainApp-Container */
-  #mainApp { background: var(--bg); min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+  html { overscroll-behavior: none; background: linear-gradient(135deg, #2a4a6a, #4a3a6a); background-attachment: fixed; }
+  body { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #2a4a6a, #4a3a6a); background-attachment: fixed; color: var(--ink); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; overscroll-behavior: none; -webkit-text-size-adjust: 100%; touch-action: pan-y; min-height: 100vh; min-height: 100dvh; }
+  /* Hintergrund-Erweiterung damit beim Bouncen oben/unten nichts Helles zu sehen ist */
+  body::after { content: ''; position: fixed; left: 0; right: 0; top: -200px; height: 200px; background: #2a4a6a; z-index: -1; }
+  #mainApp { background: transparent; min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: calc(env(safe-area-inset-bottom) + 70px); }
   body::before { content: ''; position: fixed; inset: 0; background-image: radial-gradient(circle at 20% 10%, rgba(212,160,23,.06), transparent 40%), radial-gradient(circle at 80% 80%, rgba(200,85,61,.05), transparent 40%); pointer-events: none; z-index: 0; }
   .app { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; position: relative; z-index: 1; }
   header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
@@ -34,23 +35,62 @@
   .logout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); padding: 6px 10px; border-radius: 999px; font-size: 13px; font-family: inherit; cursor: pointer; line-height: 1; }
   .logout-btn:hover { background: var(--bg); color: var(--ink); }
   @media (max-width: 540px) {
-    /* Header kompakt — eine Zeile mit Logo, Account rechts, Mode-Switch darunter */
-    header { display: grid !important; grid-template-columns: auto 1fr auto; grid-template-areas: "brand spacer account" "switch switch switch"; gap: 8px 12px; align-items: center; padding: 8px 0 10px !important; margin-bottom: 12px !important; }
-    .brand { grid-area: brand; }
-    .brand-logo { height: 28px; }
-    .account-info { grid-area: account; font-size: 12px; gap: 6px; }
-    .account-info .account-name { font-size: 13px; }
-    .logout-btn { padding: 4px 10px; font-size: 13px; }
-    .mode-switch { grid-area: switch; justify-content: center; width: 100%; }
-    .mode-switch button { padding: 6px 14px; font-size: 13px; flex: 1; min-width: 0; text-align: center; }
-    .home-hero { margin: 4px 0 12px; }
-    .home-logo { width: 140px; max-width: 50%; }
-    .home-tile { padding: 18px 16px !important; min-height: auto !important; }
-    .home-tile-icon { font-size: 36px !important; margin-bottom: 6px !important; }
-    .home-tile h2 { font-size: 19px !important; margin-bottom: 4px !important; }
-    .home-tile p { font-size: 13px !important; line-height: 1.4 !important; }
-    .home-tile-action { font-size: 13px !important; margin-top: 8px !important; }
+    /* Header: nur Logo links + Logout rechts, kompakt */
+    header { display: flex !important; justify-content: space-between !important; align-items: center !important; padding: 6px 16px !important; margin-bottom: 0 !important; border-bottom: none !important; background: transparent; gap: 8px !important; }
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .brand-logo { height: 26px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.3)); }
+    .account-info { font-size: 12px; gap: 6px; color: rgba(255,255,255,.85); }
+    .account-info .account-name { color: white; font-weight: 600; }
+    .logout-btn { padding: 6px 10px; font-size: 14px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); color: white; }
+    .logout-btn:hover { background: rgba(255,255,255,.2); color: white; }
+
+    /* Mode-Switch wird zur Tab-Bar UNTEN am Bildschirm */
+    .mode-switch {
+      position: fixed !important;
+      bottom: 0; left: 0; right: 0;
+      display: flex !important;
+      background: var(--bg-card) !important;
+      border-radius: 0 !important;
+      border: none !important;
+      border-top: 1px solid var(--line) !important;
+      padding: 6px 6px calc(6px + env(safe-area-inset-bottom)) 6px !important;
+      gap: 0 !important;
+      box-shadow: 0 -4px 20px rgba(0,0,0,.15);
+      z-index: 100;
+    }
+    .mode-switch button {
+      flex: 1 !important;
+      padding: 8px 4px !important;
+      font-size: 11px !important;
+      border-radius: 12px !important;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      min-width: 0;
+    }
+    .mode-switch button.active { background: var(--accent) !important; color: white !important; }
+    /* Icon vor Text in Tab-Bar */
+    .mode-switch button::before { font-size: 18px; line-height: 1; }
+    #modeHome::before { content: '🏠'; }
+    #modeFamily::before { content: '👥'; }
+    #modePatient::before { content: '🌅'; }
+    #modeGames::before { content: '🎲'; }
+
+    /* App-Container: bisschen Platz unten für die Tab-Bar */
+    .app { padding: 0 12px 80px !important; }
+    main { padding: 0 !important; }
+
+    /* Karten kriegen weißen Hintergrund auf blauem Body */
+    main > .card, .task-card, #homeView, .grid > .card, .stage-slider-card { background: var(--bg-card); border-radius: 18px; padding: 16px !important; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+    #homeView { background: transparent; padding: 0 !important; }
+
+    /* Home */
+    .home-hero { margin: 12px 0 16px; }
+    .home-logo { width: 100px; max-width: 35%; filter: drop-shadow(0 4px 10px rgba(0,0,0,.3)); }
     .home-tiles { gap: 10px !important; }
+    .home-tile { padding: 16px !important; min-height: auto !important; border-radius: 16px; }
+    .home-tile-icon { font-size: 32px !important; margin-bottom: 4px !important; }
+    .home-tile h2 { font-size: 17px !important; margin-bottom: 2px !important; }
+    .home-tile p { font-size: 12px !important; line-height: 1.35 !important; }
+    .home-tile-action { font-size: 12px !important; margin-top: 6px !important; }
   }
 
   /* === Auth-Screen === */
@@ -833,8 +873,8 @@
     </div>
   </main>
 </div>
-<script src="images.js?v=20260518e"></script>
-<script src="app.js?v=20260518e"></script>
+<script src="images.js?v=20260518f"></script>
+<script src="app.js?v=20260518f"></script>
 
 <!-- Notfall-Auth-Handler: registriert Click-Listener für Auth-Buttons.
      Funktioniert auch wenn app.js gerade noch lädt. -->
