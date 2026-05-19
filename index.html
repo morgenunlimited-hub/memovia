@@ -61,11 +61,14 @@
     overflow-y: auto;
     box-sizing: border-box;
   }
-  /* Spieltexte und Buttons schwarz */
+  /* Spieltexte dunkel auf dem hellen Spielhintergrund */
   body.game-active h2, body.game-active h3, body.game-active h4 { color: var(--ink) !important; }
-  body.game-active .btn-secondary, body.game-active .btn-accent { color: var(--ink) !important; }
   body.game-active .game-status div span { color: var(--ink) !important; }
   body.game-active .kn-row .kn-name, body.game-active .kn-row .kn-points-final, body.game-active .kn-row .kn-points-input { color: var(--ink) !important; }
+  /* Buttons gut lesbar: Haupt-Button schwarz mit weißem Text, Sekundär mit Border */
+  body.game-active .btn { color: var(--bg) !important; background: var(--ink) !important; border-color: var(--ink) !important; }
+  body.game-active .btn-secondary { color: var(--ink) !important; background: transparent !important; border: 1.5px solid var(--ink) !important; }
+  body.game-active .btn-accent { color: white !important; background: var(--accent) !important; border-color: var(--accent) !important; }
   .logout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); padding: 6px 10px; border-radius: 999px; font-size: 13px; font-family: inherit; cursor: pointer; line-height: 1; }
   .logout-btn:hover { background: var(--bg); color: var(--ink); }
   @media (max-width: 540px) {
@@ -80,7 +83,8 @@
     .logout-btn { padding: 0; width: 28px; height: 28px; font-size: 16px; background: rgba(255,255,255,.15); border: none; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; line-height: 1; }
     .logout-btn:hover { background: rgba(255,255,255,.25); color: white; }
 
-    /* Logo-Hero in den Views ausblenden — Header-Logo reicht */
+    /* Logo-Hero in allen Views ausblenden — Header-Logo reicht */
+    #homeView .home-hero,
     #gamesView .view-hero,
     #familyView .view-hero,
     #patientView .view-hero { display: none !important; }
@@ -135,8 +139,8 @@
     #modeGames.active::before { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a2520' stroke='%232a2520' stroke-width='1.5' stroke-linejoin='round'><rect x='4' y='4' width='16' height='16' rx='2.5'/><circle cx='8.5' cy='8.5' r='1.2' fill='white'/><circle cx='15.5' cy='8.5' r='1.2' fill='white'/><circle cx='12' cy='12' r='1.2' fill='white'/><circle cx='8.5' cy='15.5' r='1.2' fill='white'/><circle cx='15.5' cy='15.5' r='1.2' fill='white'/></svg>"); }
 
     /* App-Container: Platz unten für die Tab-Bar */
-    .app { padding: 0 12px 80px !important; }
-    main { padding: 0 !important; }
+    .app { padding: 0 0 80px !important; max-width: 100% !important; }
+    main { padding: 0 14px !important; }
 
     /* Karten kriegen weißen Hintergrund auf blauem Body */
     main > .card, .task-card, #homeView, .grid > .card, .stage-slider-card { background: var(--bg-card); border-radius: 18px; padding: 16px !important; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.1); }
@@ -729,9 +733,6 @@
   </main>
 
   <main id="familyView" class="hidden">
-    <div class="view-hero">
-      <img src="logo.png" alt="Memovia" class="view-hero-logo">
-    </div>
     <div class="stat-row">
       <div class="stat"><div class="stat-value" id="statPhotos">0</div><div class="stat-label">Bilder hinterlegt</div></div>
       <div class="stat"><div class="stat-value" id="statSessions">0</div><div class="stat-label">Aufgaben gelöst</div></div>
@@ -819,9 +820,6 @@
   </main>
 
   <main id="gamesView" class="games-view hidden">
-    <div class="view-hero">
-      <img src="logo.png" alt="Memovia" class="view-hero-logo">
-    </div>
     <div id="gameMenu">
       <div class="game-picker">
         <div class="game-tile" onclick="startMemory()"><div class="game-tile-icon">🎴</div><h3>Memory</h3><p>Finde die passenden Paare gegen den Computer.</p></div>
@@ -947,8 +945,8 @@
     </div>
   </main>
 </div>
-<script src="images.js?v=20260519i"></script>
-<script src="app.js?v=20260519i"></script>
+<script src="images.js?v=20260519j"></script>
+<script src="app.js?v=20260519j"></script>
 
 <!-- Notfall-Auth-Handler: registriert Click-Listener für Auth-Buttons.
      Funktioniert auch wenn app.js gerade noch lädt. -->
