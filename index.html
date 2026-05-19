@@ -69,14 +69,21 @@
   .logout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); padding: 6px 10px; border-radius: 999px; font-size: 13px; font-family: inherit; cursor: pointer; line-height: 1; }
   .logout-btn:hover { background: var(--bg); color: var(--ink); }
   @media (max-width: 540px) {
-    /* Header: nur Logo links + Logout rechts, kompakt */
-    header { display: flex !important; justify-content: space-between !important; align-items: center !important; padding: 6px 16px !important; margin-bottom: 0 !important; border-bottom: none !important; background: transparent; gap: 8px !important; }
+    /* Header: Logo links groß, kompaktes Profil rechts */
+    header { display: flex !important; justify-content: space-between !important; align-items: center !important; padding: 10px 16px !important; margin-bottom: 8px !important; border-bottom: none !important; background: transparent; gap: 8px !important; }
     .brand { display: flex; align-items: center; gap: 8px; }
-    .brand-logo { height: 26px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.3)); }
-    .account-info { font-size: 12px; gap: 6px; color: rgba(255,255,255,.85); }
-    .account-info .account-name { color: white; font-weight: 600; }
-    .logout-btn { padding: 6px 10px; font-size: 14px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); color: white; }
-    .logout-btn:hover { background: rgba(255,255,255,.2); color: white; }
+    .brand-logo { height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.3)); }
+
+    /* Profil + Logout als Pille rechts oben */
+    .account-info { display: flex; align-items: center; gap: 0; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 4px 4px 4px 12px; backdrop-filter: blur(8px); }
+    .account-info .account-name { color: white; font-weight: 600; font-size: 13px; margin-right: 10px; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .logout-btn { padding: 0; width: 28px; height: 28px; font-size: 16px; background: rgba(255,255,255,.15); border: none; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; line-height: 1; }
+    .logout-btn:hover { background: rgba(255,255,255,.25); color: white; }
+
+    /* Logo-Hero in den Views ausblenden — Header-Logo reicht */
+    #gamesView .view-hero,
+    #familyView .view-hero,
+    #patientView .view-hero { display: none !important; }
 
     /* Mode-Switch wird zur Tab-Bar UNTEN am Bildschirm — Instagram-Stil */
     .mode-switch {
@@ -144,6 +151,22 @@
     .home-tile h2 { font-size: 17px !important; margin-bottom: 2px !important; }
     .home-tile p { font-size: 12px !important; line-height: 1.35 !important; }
     .home-tile-action { font-size: 12px !important; margin-top: 6px !important; }
+
+    /* Spielkacheln auf blauem Hintergrund — Glasmorphism */
+    .game-picker { gap: 12px !important; margin-top: 8px !important; grid-template-columns: 1fr !important; }
+    .game-tile {
+      background: rgba(255,255,255,.12) !important;
+      border: 1px solid rgba(255,255,255,.2) !important;
+      border-radius: 18px !important;
+      padding: 16px 18px !important;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 16px rgba(0,0,0,.15) !important;
+      color: white !important;
+    }
+    .game-tile h3 { color: white !important; margin: 6px 0 4px !important; font-size: 18px !important; }
+    .game-tile p { color: rgba(255,255,255,.75) !important; font-size: 13px !important; line-height: 1.35 !important; }
+    .game-tile-icon { font-size: 32px !important; margin-bottom: 2px !important; }
   }
 
   /* === Auth-Screen === */
@@ -924,8 +947,8 @@
     </div>
   </main>
 </div>
-<script src="images.js?v=20260519h"></script>
-<script src="app.js?v=20260519h"></script>
+<script src="images.js?v=20260519i"></script>
+<script src="app.js?v=20260519i"></script>
 
 <!-- Notfall-Auth-Handler: registriert Click-Listener für Auth-Buttons.
      Funktioniert auch wenn app.js gerade noch lädt. -->
