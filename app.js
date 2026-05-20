@@ -4186,6 +4186,48 @@ async function verifyTaskImages(task) {
   return true;
 }
 
+// Prüft im Hintergrund nach und nach alle Bilder der Bild-Pools.
+// Kaputte Bilder werden als 'failed' markiert und kommen dann nicht mehr vor.
+let bgVerifyDone = false;
+async function verifyAllImagesInBackground() {
+  if (bgVerifyDone) return;
+  bgVerifyDone = true;
+  // Alle Keywords aus den Bild-Pools sammeln
+  const allKeywords = new Set();
+  try {
+    [POOL_WHAT_IS_IT, POOL_WHAT_FOOD, POOL_WHERE_IS_THIS].forEach(pool => {
+      pool.forEach(it => { if (it.keyword) allKeywords.add(it.keyword); });
+    });
+    // Auch Kategorien-Pool
+    if (typeof POOL_CATEGORIES !== 'undefined') {
+      Object.values(POOL_CATEGORIES).forEach(cat => {
+        (cat.items || []).forEach(it => allKeywords.add(it));
+      });
+    }
+  } catch(e) { return; }
+
+  const list = [...allKeywords];
+  let checked = 0, failed = 0;
+  // Immer nur 3 gleichzeitig prüfen damit es das Gerät nicht überlastet
+  for (let i = 0; i < list.length; i += 3) {
+    const batch = list.slice(i, i + 3);
+    await Promise.all(batch.map(async (kw) => {
+      // Schon bekannt? Überspringen
+      if (imageStatus[kw] === 'ok' || imageStatus[kw] === 'failed') return;
+      const ok = await verifyKeywordLoadable(kw, 5000);
+      imageStatus[kw] = ok ? 'ok' : 'failed';
+      checked++;
+      if (!ok) failed++;
+    }));
+    // Kurze Pause zwischen den Batches
+    await new Promise(r => setTimeout(r, 200));
+  }
+  if (failed > 0) {
+    try { saveState(); } catch(e) {}
+    console.log(`[Memovia] Bildprüfung: ${checked} geprüft, ${failed} fehlerhaft (werden ausgeblendet)`);
+  }
+}
+
 async function nextTask() {
   // Tap-Highlight + Focus von vorherigem Button entfernen
   if (document.activeElement && document.activeElement.blur) {
@@ -6346,6 +6388,9 @@ async function initApp() {
       if (total < 5 && typeof generateAITasks === 'function') generateAITasks();
     } catch(e) { console.error('[Memovia] aiPool:', e); }
   }, 2000);
+  // Bilder im Hintergrund verifizieren — kaputte werden als 'failed' markiert
+  // und tauchen dann nicht mehr in Aufgaben auf.
+  setTimeout(() => { verifyAllImagesInBackground(); }, 4000);
 }
 
 // Beim ersten Laden: prüfen ob jemand eingeloggt ist
