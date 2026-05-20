@@ -755,7 +755,39 @@ const POOL_WHAT_FOOD = [
   { word: 'Wurstbrot',       keyword: 'Stulle',          distractKeys: ['Käsebrot','Marmeladenbrot','Toast'] },
   { word: 'Hamburger',       keyword: 'Hamburger (Speise)', distractKeys: ['Cheeseburger','Sandwich','Hotdog'] },
   { word: 'Hotdog',          keyword: 'Hot Dog',         distractKeys: ['Bratwurst','Hamburger','Sandwich'] },
+  { word: 'Käsekuchen',      keyword: 'Käsekuchen',      distractKeys: ['Apfelkuchen','Marmorkuchen','Obsttorte'] },
+  { word: 'Apfelstrudel',    keyword: 'Apfelstrudel',    distractKeys: ['Apfelkuchen','Quarktasche','Blätterteig'] },
+  { word: 'Schwarzwälder Kirschtorte', keyword: 'Schwarzwälder Kirschtorte', distractKeys: ['Sachertorte','Käsekuchen','Donauwelle'] },
+  { word: 'Lebkuchen',       keyword: 'Lebkuchen',       distractKeys: ['Plätzchen','Spekulatius','Zimtsterne'] },
+  { word: 'Stollen',         keyword: 'Christstollen',   distractKeys: ['Hefezopf','Rosinenbrot','Kuchen'] },
+  { word: 'Pfannkuchen',     keyword: 'Pfannkuchen',     distractKeys: ['Crêpe','Omelett','Waffel'] },
+  { word: 'Waffel',          keyword: 'Waffel',          distractKeys: ['Pfannkuchen','Keks','Toast'] },
+  { word: 'Müsli',           keyword: 'Müsli',           distractKeys: ['Cornflakes','Haferbrei','Granola'] },
+  { word: 'Spiegelei',       keyword: 'Spiegelei',       distractKeys: ['Rührei','Omelett','pochiertes Ei'] },
+  { word: 'Rührei',          keyword: 'Rührei',          distractKeys: ['Spiegelei','Omelett','Pfannkuchen'] },
+  { word: 'Gulasch',         keyword: 'Gulasch',         distractKeys: ['Eintopf','Ragout','Geschnetzeltes'] },
+  { word: 'Rouladen',        keyword: 'Roulade',         distractKeys: ['Braten','Schnitzel','Frikadelle'] },
+  { word: 'Spargel',         keyword: 'Spargel',         distractKeys: ['Bohnen','Lauch','Sellerie'] },
+  { word: 'Rotkohl',         keyword: 'Rotkohl',         distractKeys: ['Sauerkraut','Weißkohl','Spinat'] },
+  { word: 'Kartoffelsalat',  keyword: 'Kartoffelsalat',  distractKeys: ['Nudelsalat','Gurkensalat','Krautsalat'] },
+  { word: 'Currywurst',      keyword: 'Currywurst',      distractKeys: ['Bratwurst','Bockwurst','Leberkäse'] },
+  { word: 'Frikadelle',      keyword: 'Frikadelle',      distractKeys: ['Bulette','Hacksteak','Schnitzel'] },
+  { word: 'Kohlrouladen',    keyword: 'Kohlroulade',     distractKeys: ['Roulade','Krautwickel','Braten'] },
+  { word: 'Linsensuppe',     keyword: 'Linsensuppe',     distractKeys: ['Erbsensuppe','Bohnensuppe','Gemüsesuppe'] },
+  { word: 'Tomatensuppe',    keyword: 'Tomatensuppe',    distractKeys: ['Kürbissuppe','Gulaschsuppe','Zwiebelsuppe'] },
+  { word: 'Birne',           keyword: 'Birne',           distractKeys: ['Apfel','Quitte','Pfirsich'] },
+  { word: 'Kirsche',         keyword: 'Kirsche',         distractKeys: ['Pflaume','Traube','Beere'] },
+  { word: 'Erdbeere',        keyword: 'Erdbeere',        distractKeys: ['Himbeere','Kirsche','Tomate'] },
+  { word: 'Weintrauben',     keyword: 'Weintraube',      distractKeys: ['Kirschen','Beeren','Oliven'] },
+  { word: 'Pflaume',         keyword: 'Pflaume',         distractKeys: ['Aprikose','Kirsche','Dattel'] },
+  { word: 'Möhre',           keyword: 'Karotte',         distractKeys: ['Pastinake','Rübe','Sellerie'] },
+  { word: 'Gurke',           keyword: 'Gurke',           distractKeys: ['Zucchini','Lauch','Spargel'] },
+  { word: 'Tomate',          keyword: 'Tomate',          distractKeys: ['Paprika','Apfel','Pfirsich'] },
+  { word: 'Paprika',         keyword: 'Paprika',         distractKeys: ['Tomate','Chili','Apfel'] },
+  { word: 'Zwiebel',         keyword: 'Zwiebel',         distractKeys: ['Knoblauch','Lauch','Schalotte'] },
+  { word: 'Pilze',           keyword: 'Champignon',      distractKeys: ['Zwiebel','Knoblauch','Kartoffel'] },
 ];
+
 
 // "Wo ist das?" — Bekannte Wahrzeichen (50+ stück)
 const POOL_WHERE_IS_THIS = [
@@ -3168,7 +3200,98 @@ function makeLueckentext(level) {
 }
 
 // === ALLGEMEINWISSEN ===
+// ===========================================================================
+// PROZEDURALE FRAGEN-GENERIERUNG — praktisch unendlich, ohne Internet
+// ===========================================================================
+const LAENDER_HAUPTSTAEDTE = [
+  ['Deutschland','Berlin'],['Frankreich','Paris'],['Italien','Rom'],['Spanien','Madrid'],
+  ['Portugal','Lissabon'],['Großbritannien','London'],['Irland','Dublin'],['Niederlande','Amsterdam'],
+  ['Belgien','Brüssel'],['Schweiz','Bern'],['Österreich','Wien'],['Polen','Warschau'],
+  ['Tschechien','Prag'],['Ungarn','Budapest'],['Griechenland','Athen'],['Schweden','Stockholm'],
+  ['Norwegen','Oslo'],['Dänemark','Kopenhagen'],['Finnland','Helsinki'],['Russland','Moskau'],
+  ['Türkei','Ankara'],['Kroatien','Zagreb'],['Rumänien','Bukarest'],['Bulgarien','Sofia'],
+  ['Slowakei','Bratislava'],['Slowenien','Ljubljana'],['Serbien','Belgrad'],['Ukraine','Kiew'],
+  ['USA','Washington'],['Kanada','Ottawa'],['Mexiko','Mexiko-Stadt'],['Brasilien','Brasília'],
+  ['Argentinien','Buenos Aires'],['Chile','Santiago'],['Japan','Tokio'],['China','Peking'],
+  ['Indien','Neu-Delhi'],['Australien','Canberra'],['Ägypten','Kairo'],['Marokko','Rabat'],
+  ['Island','Reykjavík'],['Luxemburg','Luxemburg'],['Estland','Tallinn'],['Lettland','Riga'],
+  ['Litauen','Vilnius'],['Thailand','Bangkok'],['Südkorea','Seoul'],['Kuba','Havanna'],
+];
+const BUNDESLAENDER = [
+  ['Bayern','München'],['Baden-Württemberg','Stuttgart'],['Hessen','Wiesbaden'],
+  ['Nordrhein-Westfalen','Düsseldorf'],['Niedersachsen','Hannover'],['Sachsen','Dresden'],
+  ['Thüringen','Erfurt'],['Rheinland-Pfalz','Mainz'],['Saarland','Saarbrücken'],
+  ['Brandenburg','Potsdam'],['Sachsen-Anhalt','Magdeburg'],['Mecklenburg-Vorpommern','Schwerin'],
+  ['Schleswig-Holstein','Kiel'],
+];
+const TIER_FAKTEN = [
+  ['Welches Tier ist das größte Landtier?','Elefant',['Nashorn','Giraffe','Nilpferd']],
+  ['Welches Tier ist der schnellste Läufer?','Gepard',['Pferd','Löwe','Hund']],
+  ['Welches Tier hat den längsten Hals?','Giraffe',['Elefant','Strauß','Kamel']],
+  ['Welches Tier lebt im Wasser und ist ein Säugetier?','Wal',['Hai','Thunfisch','Krake']],
+  ['Welches Tier kann fliegen und ist ein Säugetier?','Fledermaus',['Adler','Eule','Schwalbe']],
+  ['Welches Tier gibt uns Milch?','Kuh',['Pferd','Huhn','Schaf']],
+  ['Welches Tier gibt uns Wolle?','Schaf',['Kuh','Schwein','Pferd']],
+  ['Welches Tier ist bekannt für seinen Stachel?','Biene',['Fliege','Mücke','Käfer']],
+  ['Welches Tier baut ein Netz?','Spinne',['Ameise','Wespe','Käfer']],
+  ['Welches Tier hat einen Panzer?','Schildkröte',['Frosch','Schlange','Krokodil']],
+  ['Welches Tier ist der König der Tiere?','Löwe',['Tiger','Bär','Elefant']],
+  ['Welches Tier hat einen Rüssel?','Elefant',['Nashorn','Nilpferd','Büffel']],
+  ['Welches Tier trägt sein Junges im Beutel?','Känguru',['Hase','Affe','Koala']],
+];
+const KOERPER_FAKTEN = [
+  ['Womit hört man?','Mit den Ohren',['Mit der Nase','Mit den Augen','Mit dem Mund']],
+  ['Womit sieht man?','Mit den Augen',['Mit den Ohren','Mit der Nase','Mit den Händen']],
+  ['Womit riecht man?','Mit der Nase',['Mit den Ohren','Mit den Augen','Mit dem Mund']],
+  ['Wie viele Finger hat eine Hand?','Fünf',['Vier','Sechs','Drei']],
+  ['Welches Organ pumpt das Blut?','Das Herz',['Die Lunge','Der Magen','Die Leber']],
+  ['Womit atmet man?','Mit der Lunge',['Mit dem Herzen','Mit dem Magen','Mit der Leber']],
+];
+function genVergleichsFrage() {
+  const dinge = [
+    ['Berg','Hügel'],['Ozean','See'],['Elefant','Maus'],['Wolkenkratzer','Haus'],
+    ['Lkw','Fahrrad'],['Stadt','Dorf'],['Stunde','Minute'],['Jahr','Woche'],
+    ['Erwachsener','Kind'],['Riese','Zwerg'],
+  ];
+  const [gross, klein] = pickRandom(dinge);
+  return Math.random() < 0.5
+    ? { prompt: 'Was ist größer?', image: '📏', options: shuffle([gross, klein]), correct: gross, hint: null }
+    : { prompt: 'Was ist kleiner?', image: '📏', options: shuffle([gross, klein]), correct: klein, hint: null };
+}
+function genProzeduralAllgemein(level) {
+  const numOpts = level <= 2 ? 3 : 4;
+  const variante = rndInt(1, 6);
+  if (variante === 1) {
+    const [land, stadt] = pickRandom(LAENDER_HAUPTSTAEDTE);
+    const andere = shuffle(LAENDER_HAUPTSTAEDTE.filter(x => x[1] !== stadt).map(x => x[1]));
+    return { prompt: `Was ist die Hauptstadt von ${land}?`, image: '🌍',
+      options: shuffle([stadt, ...andere.slice(0, numOpts - 1)]), correct: stadt, hint: null };
+  } else if (variante === 2) {
+    const [land, stadt] = pickRandom(LAENDER_HAUPTSTAEDTE);
+    const andere = shuffle(LAENDER_HAUPTSTAEDTE.filter(x => x[0] !== land).map(x => x[0]));
+    return { prompt: `In welchem Land liegt ${stadt}?`, image: '🌍',
+      options: shuffle([land, ...andere.slice(0, numOpts - 1)]), correct: land, hint: null };
+  } else if (variante === 3) {
+    const [land, stadt] = pickRandom(BUNDESLAENDER);
+    const andere = shuffle(BUNDESLAENDER.filter(x => x[1] !== stadt).map(x => x[1]));
+    return { prompt: `Was ist die Hauptstadt des Bundeslandes ${land}?`, image: '🇩🇪',
+      options: shuffle([stadt, ...andere.slice(0, numOpts - 1)]), correct: stadt, hint: null };
+  } else if (variante === 4) {
+    const [q, a, distract] = pickRandom(TIER_FAKTEN);
+    return { prompt: q, image: '🐾', options: shuffle([a, ...distract.slice(0, numOpts - 1)]), correct: a, hint: null };
+  } else if (variante === 5) {
+    const [q, a, distract] = pickRandom(KOERPER_FAKTEN);
+    return { prompt: q, image: '🧍', options: shuffle([a, ...distract.slice(0, numOpts - 1)]), correct: a, hint: null };
+  } else {
+    return genVergleichsFrage();
+  }
+}
+
 function makeAllgemein(level) {
+  // 50% aus festem Pool, 50% prozedural generiert — so wiederholt sich nichts
+  if (Math.random() < 0.5) {
+    return genProzeduralAllgemein(level);
+  }
   const fresh = POOL_ALLGEMEIN.filter(it => !isRecent('allgemein', it.q));
   const item = fresh.length > 0 ? pickRandom(fresh) : pickRandom(POOL_ALLGEMEIN);
   rememberRecent('allgemein', item.q, POOL_ALLGEMEIN.length);
@@ -3668,7 +3791,7 @@ Antworte NUR mit gültigem JSON:
   "whereIsThis": [{"word": "Eiffelturm", "keyword": "Eiffelturm", "distractKeys": ["Big Ben","Tour Montparnasse","Empire State Building"]}]
 }
 
-Generiere 4 neue Aufgaben pro Kategorie. Keine Wiederholung typischer Beispiele wie "Morgenstund hat Gold im Mund".
+Generiere 8 neue Aufgaben pro Kategorie. Keine Wiederholung typischer Beispiele wie "Morgenstund hat Gold im Mund". Sei kreativ und abwechslungsreich.
 
 Wichtig für whatIsIt/whatFood/whereIsThis: keyword muss ein deutscher Wikipedia-Artikelname sein (z.B. "Banane", "Wiener Schnitzel", "Brandenburger Tor"). Wahrzeichen: nur weltweit bekannte (Eiffelturm, Brandenburger Tor, Kolosseum, Big Ben, Schloss Neuschwanstein, Akropolis, Freiheitsstatue, Schiefer Turm von Pisa, Olympiastadion München, Kölner Dom). Essen: deutsche/europäische Küche.`;
 
@@ -3702,7 +3825,8 @@ Wichtig für whatIsIt/whatFood/whereIsThis: keyword muss ein deutscher Wikipedia
 
 function checkAutoRefill() {
   const total = Object.values(aiPool).reduce((s, a) => s + a.length, 0);
-  if (total < 3 && !aiGenerating && sessionStats.total > 2) generateAITasks();
+  // Früher nachfüllen — sobald unter 10 Fragen und ein paar Aufgaben gelöst wurden
+  if (total < 10 && !aiGenerating && sessionStats.total > 1) generateAITasks();
 }
 
 // ===========================================================================
