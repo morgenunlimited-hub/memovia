@@ -45,6 +45,17 @@ if (typeof window.storage === 'undefined' || !window.storage) {
 
 let currentUser = null;  // { id, email, name }
 
+// Helper: gibt den Namen des eingeloggten Users zurück (Fallback: "Karl")
+function userName() {
+  return (currentUser && currentUser.name) ? currentUser.name : 'Karl';
+}
+// Genitiv mit korrektem Apostroph
+function userNameGenitive() {
+  const n = userName();
+  const last = n.slice(-1).toLowerCase();
+  return ['s','ß','z','x'].includes(last) ? n + '\'' : n + 's';
+}
+
 // Storage-Key für den State des aktuellen Users
 function getStateKey() {
   if (!currentUser) return 'memora-state-guest';
@@ -310,6 +321,10 @@ const TASK_TYPES = [
   { id: 'rhymes',      name: 'Reimwörter',       desc: 'Welches reimt sich?',       defaultActive: true,  minStage: 6 },
   { id: 'wordpair',    name: 'Wortpaare',        desc: 'Was gehört zusammen?',      defaultActive: true,  minStage: 4 },
   { id: 'memory',      name: 'Memory',           desc: 'Symbol merken',             defaultActive: true,  minStage: 1 },
+  { id: 'buchstabe',   name: 'Buchstaben raten', desc: 'Welcher Buchstabe fehlt?',  defaultActive: true,  minStage: 1 },
+  { id: 'farben',      name: 'Farben',           desc: 'Welche Farbe hat...?',      defaultActive: true,  minStage: 1 },
+  { id: 'jahreszeit',  name: 'Jahreszeiten',     desc: 'Wann passiert was?',        defaultActive: true,  minStage: 1 },
+  { id: 'zeitspanne',  name: 'Zeit & Uhr',       desc: 'Wie spät ist es?',          defaultActive: true,  minStage: 1 },
 ];
 
 let skill = {};
@@ -2795,7 +2810,7 @@ function makeRecognize(level) {
   if (level <= 2) prompt += ` (${target.relation})`;
   let hint = null;
   if (target.note) hint = target.note;
-  else if (level > 2) hint = `Diese Person ist Karls ${target.relation}.`;
+  else if (level > 2) hint = `Diese Person ist ${userNameGenitive()} ${target.relation}.`;
   return { prompt, image: target.initial, options: opts.map(o => o.name), correct: target.name, hint, _personName: target.name };
 }
 
@@ -3448,6 +3463,133 @@ function makeMemory(level) {
   }
 }
 
+// === Neue Aufgabentypen ===
+
+// Buchstaben raten — bekanntes Wort mit fehlendem Buchstaben
+const POOL_BUCHSTABE = [
+  { word: 'BLUME', missing: 'L', hint: 'Wächst im Garten' },
+  { word: 'BROT', missing: 'R', hint: 'Wird beim Bäcker gekauft' },
+  { word: 'HAUS', missing: 'A', hint: 'Hier wohnt man' },
+  { word: 'KAFFEE', missing: 'F', hint: 'Heißes Morgengetränk' },
+  { word: 'GARTEN', missing: 'T', hint: 'Hinter dem Haus' },
+  { word: 'KIRCHE', missing: 'C', hint: 'Sonntags Gottesdienst' },
+  { word: 'BERG', missing: 'E', hint: 'Hohe Erhebung' },
+  { word: 'SONNE', missing: 'O', hint: 'Scheint am Himmel' },
+  { word: 'MILCH', missing: 'I', hint: 'Weiß, von der Kuh' },
+  { word: 'BUCH', missing: 'U', hint: 'Zum Lesen' },
+  { word: 'FENSTER', missing: 'N', hint: 'Glas in der Wand' },
+  { word: 'TISCH', missing: 'S', hint: 'Möbelstück zum Essen' },
+  { word: 'STUHL', missing: 'T', hint: 'Zum Sitzen' },
+  { word: 'TELEFON', missing: 'F', hint: 'Zum Anrufen' },
+  { word: 'KOFFER', missing: 'O', hint: 'Zum Reisen' },
+  { word: 'SCHULE', missing: 'L', hint: 'Kinder lernen hier' },
+  { word: 'HUND', missing: 'D', hint: 'Bellt und wedelt' },
+  { word: 'KATZE', missing: 'Z', hint: 'Schnurrt' },
+  { word: 'ZUG', missing: 'U', hint: 'Fährt auf Schienen' },
+  { word: 'AUTO', missing: 'T', hint: 'Vier Räder' },
+];
+function makeBuchstabe(level) {
+  const entry = pickRandom(POOL_BUCHSTABE);
+  const hidden = entry.word.split('').map(c => c === entry.missing ? '_' : c).join(' ');
+  const others = ['A','E','I','O','U','B','C','D','F','G','H','K','L','M','N','P','R','S','T'].filter(c => c !== entry.missing);
+  const distract = shuffle(others).slice(0, 3);
+  return {
+    prompt: `Welcher Buchstabe fehlt? ${hidden}`,
+    image: '🔤',
+    options: shuffle([entry.missing, ...distract]),
+    correct: entry.missing,
+    hint: entry.hint,
+  };
+}
+
+// Farben — was hat welche Farbe?
+const POOL_FARBEN = [
+  { thing: 'eine Tomate', color: 'Rot', distract: ['Grün','Gelb','Blau'] },
+  { thing: 'eine Zitrone', color: 'Gelb', distract: ['Rot','Orange','Grün'] },
+  { thing: 'das Gras', color: 'Grün', distract: ['Braun','Gelb','Blau'] },
+  { thing: 'der Himmel an einem schönen Tag', color: 'Blau', distract: ['Grau','Weiß','Grün'] },
+  { thing: 'Schnee', color: 'Weiß', distract: ['Blau','Grau','Silber'] },
+  { thing: 'Kohle', color: 'Schwarz', distract: ['Grau','Braun','Dunkelblau'] },
+  { thing: 'eine Banane', color: 'Gelb', distract: ['Grün','Braun','Weiß'] },
+  { thing: 'eine reife Erdbeere', color: 'Rot', distract: ['Rosa','Orange','Gelb'] },
+  { thing: 'das Eigelb', color: 'Gelb', distract: ['Weiß','Orange','Beige'] },
+  { thing: 'eine Tanne', color: 'Grün', distract: ['Braun','Gelb','Schwarz'] },
+  { thing: 'die Milch', color: 'Weiß', distract: ['Gelb','Beige','Blau'] },
+  { thing: 'eine Orange', color: 'Orange', distract: ['Rot','Gelb','Braun'] },
+  { thing: 'eine Aubergine', color: 'Lila', distract: ['Blau','Schwarz','Braun'] },
+  { thing: 'eine reife Pflaume', color: 'Lila', distract: ['Rot','Blau','Schwarz'] },
+  { thing: 'Kakao-Pulver', color: 'Braun', distract: ['Schwarz','Beige','Grau'] },
+  { thing: 'eine Kastanie', color: 'Braun', distract: ['Schwarz','Beige','Rot'] },
+  { thing: 'Lavendel', color: 'Lila', distract: ['Blau','Rosa','Weiß'] },
+  { thing: 'eine Karotte', color: 'Orange', distract: ['Gelb','Rot','Braun'] },
+];
+function makeFarben(level) {
+  const entry = pickRandom(POOL_FARBEN);
+  return {
+    prompt: `Welche Farbe hat ${entry.thing}?`,
+    image: '🎨',
+    options: shuffle([entry.color, ...entry.distract.slice(0, 3)]),
+    correct: entry.color,
+    hint: undefined,
+  };
+}
+
+// Jahreszeiten — wann passiert was?
+const POOL_JAHRESZEIT = [
+  { event: 'Weihnachten', answer: 'Winter', distract: ['Frühling','Sommer','Herbst'] },
+  { event: 'Ostern', answer: 'Frühling', distract: ['Winter','Sommer','Herbst'] },
+  { event: 'die Erdbeerernte', answer: 'Sommer', distract: ['Frühling','Herbst','Winter'] },
+  { event: 'der Beginn der Schule', answer: 'Herbst', distract: ['Frühling','Sommer','Winter'] },
+  { event: 'das Laub fällt', answer: 'Herbst', distract: ['Sommer','Frühling','Winter'] },
+  { event: 'die Bäume blühen', answer: 'Frühling', distract: ['Sommer','Herbst','Winter'] },
+  { event: 'es schneit am häufigsten', answer: 'Winter', distract: ['Herbst','Frühling','Sommer'] },
+  { event: 'Silvester', answer: 'Winter', distract: ['Frühling','Sommer','Herbst'] },
+  { event: 'das Oktoberfest', answer: 'Herbst', distract: ['Sommer','Frühling','Winter'] },
+  { event: 'die Sommerferien', answer: 'Sommer', distract: ['Frühling','Herbst','Winter'] },
+  { event: 'Karneval und Fasching', answer: 'Winter', distract: ['Frühling','Herbst','Sommer'] },
+  { event: 'die Weinlese', answer: 'Herbst', distract: ['Sommer','Frühling','Winter'] },
+  { event: 'Pfingsten', answer: 'Frühling', distract: ['Sommer','Herbst','Winter'] },
+  { event: 'das Spargelernten', answer: 'Frühling', distract: ['Sommer','Herbst','Winter'] },
+  { event: 'der Tag der Deutschen Einheit (3. Oktober)', answer: 'Herbst', distract: ['Sommer','Frühling','Winter'] },
+];
+function makeJahreszeit(level) {
+  const entry = pickRandom(POOL_JAHRESZEIT);
+  return {
+    prompt: `In welcher Jahreszeit ist ${entry.event}?`,
+    image: '🍂',
+    options: shuffle([entry.answer, ...entry.distract.slice(0, 3)]),
+    correct: entry.answer,
+  };
+}
+
+// Zeit / Uhr lesen
+const POOL_ZEITSPANNE = [
+  { q: 'Wie viele Stunden hat ein Tag?', a: '24', distract: ['12','48','60'] },
+  { q: 'Wie viele Minuten hat eine Stunde?', a: '60', distract: ['100','30','120'] },
+  { q: 'Wie viele Sekunden hat eine Minute?', a: '60', distract: ['100','30','120'] },
+  { q: 'Wie viele Tage hat eine Woche?', a: '7', distract: ['5','10','14'] },
+  { q: 'Wie viele Monate hat ein Jahr?', a: '12', distract: ['10','24','52'] },
+  { q: 'Wie viele Tage hat der Februar normalerweise?', a: '28', distract: ['30','31','29'] },
+  { q: 'Wie viele Tage hat der März?', a: '31', distract: ['30','28','29'] },
+  { q: 'Welcher Monat hat 30 Tage?', a: 'April', distract: ['März','Mai','Januar'] },
+  { q: 'Welcher Tag kommt nach Dienstag?', a: 'Mittwoch', distract: ['Montag','Donnerstag','Sonntag'] },
+  { q: 'Welcher Tag kommt vor Sonntag?', a: 'Samstag', distract: ['Freitag','Montag','Mittwoch'] },
+  { q: 'Welcher Monat kommt nach Juli?', a: 'August', distract: ['Juni','September','Mai'] },
+  { q: 'Wann ist Mittag?', a: '12 Uhr', distract: ['6 Uhr','18 Uhr','24 Uhr'] },
+  { q: 'Wann ist Mitternacht?', a: '24 Uhr', distract: ['12 Uhr','6 Uhr','18 Uhr'] },
+  { q: 'Wann frühstückt man üblicherweise?', a: 'Morgens', distract: ['Mittags','Abends','Nachts'] },
+  { q: 'Wann geht die Sonne im Sommer auf?', a: 'Früh am Morgen', distract: ['Mittags','Abends','Mitternachts'] },
+];
+function makeZeitspanne(level) {
+  const entry = pickRandom(POOL_ZEITSPANNE);
+  return {
+    prompt: entry.q,
+    image: '🕐',
+    options: shuffle([entry.a, ...entry.distract.slice(0, 3)]),
+    correct: entry.a,
+  };
+}
+
 const GENERATORS = {
   recognize: makeRecognize, whatIsIt: makeWhatIsIt, whatFood: makeWhatFood, whereIsThis: makeWhereIsThis,
   category: makeCategory, proverb: makeProverb, numbers: makeNumbers, orientation: makeOrientation,
@@ -3456,6 +3598,7 @@ const GENERATORS = {
   homonyms: makeHomonyms,
   semantic: makeSemantic, lueckentext: makeLueckentext, allgemein: makeAllgemein,
   analogien: makeAnalogien, komposita: makeKomposita, reihenfolge: makeReihenfolge,
+  buchstabe: makeBuchstabe, farben: makeFarben, jahreszeit: makeJahreszeit, zeitspanne: makeZeitspanne,
 };
 
 // Berechnet den effektiven Schwierigkeitsgrad basierend auf Stadium und Lerntempo
@@ -3548,7 +3691,7 @@ Wichtig für whatIsIt/whatFood/whereIsThis: keyword muss ein deutscher Wikipedia
       if (w.word && w.keyword && w.distractKeys) aiPool.whereIsThis.push({ prompt: 'Welches Wahrzeichen ist das?', bigImage: imgUrl(w.keyword), options: shuffle([w.word, ...w.distractKeys.slice(0,3)]), correct: w.word, hint: `Beginnt mit „${w.word.charAt(0)}".` });
     });
     const total = Object.values(aiPool).reduce((s, a) => s + a.length, 0);
-    setGenStatus(false, `${total} KI-Fragen im Pool`, 'Karl bekommt diese Fragen automatisch.');
+    setGenStatus(false, `${total} KI-Fragen im Pool`, `${userName()} bekommt diese Fragen automatisch.`);
     saveState();
   } catch (err) {
     setGenStatus(false, 'KI-Generierung nicht möglich', 'Standard-Fragen werden genutzt.');
@@ -3597,7 +3740,7 @@ function renderSkillBars() {
 function renderInsight() {
   const el = document.getElementById('aiInsight');
   if (sessionStats.total < 3) {
-    el.textContent = 'Noch wenige Daten — sobald Karl ein paar Aufgaben gelöst hat, erscheint hier eine Empfehlung.';
+    el.textContent = `Noch wenige Daten — sobald ${userName()} ein paar Aufgaben gelöst hat, erscheint hier eine Empfehlung.`;
     return;
   }
   const ranked = TASK_TYPES.map(t => {
@@ -3605,14 +3748,14 @@ function renderInsight() {
     const total = s.correct + s.wrong;
     return { name: t.name, rate: total > 0 ? s.correct / total : 1, total };
   }).filter(x => x.total >= 2).sort((a,b) => a.rate - b.rate);
-  if (ranked.length === 0) { el.textContent = 'Karl macht das gut — KI sammelt weiter Daten.'; return; }
+  if (ranked.length === 0) { el.textContent = `${userName()} macht das gut — KI sammelt weiter Daten.`; return; }
   const weakest = ranked[0];
   const strongest = ranked[ranked.length - 1];
   const overall = Math.round((sessionStats.correct / sessionStats.total) * 100);
-  let msg = `<strong>Empfehlung:</strong> Karl löst aktuell <strong>${overall}%</strong> der Aufgaben richtig. `;
+  let msg = `<strong>Empfehlung:</strong> ${userName()} löst aktuell <strong>${overall}%</strong> der Aufgaben richtig. `;
   if (weakest.rate < 0.5) msg += `Bei „${weakest.name}" zeigt sich Schwierigkeit (${Math.round(weakest.rate*100)}%) — die KI hat die Stufe automatisch reduziert.`;
   else if (strongest.rate > 0.85) msg += `„${strongest.name}" läuft sehr stark — die Aufgaben werden nun anspruchsvoller.`;
-  else msg += `Das Niveau passt gut — Karl wird angemessen gefordert.`;
+  else msg += `Das Niveau passt gut — ${userName()} wird angemessen gefordert.`;
   el.innerHTML = msg;
 }
 function renderRepeatQueue() {
@@ -3644,7 +3787,7 @@ function renderStage() {
   valueEl.textContent = dementiaStage;
   let text;
   if (dementiaStage <= 3) {
-    text = `<strong>Frühstadium (${dementiaStage}/10):</strong> Nur Gehirnjogging — keine Personen-Aufgaben. Karl bekommt ausschließlich Denkübungen wie Sprichwörter, Kopfrechnen, Wortspiele und Bilder-Quiz.`;
+    text = `<strong>Frühstadium (${dementiaStage}/10):</strong> Nur Gehirnjogging — keine Personen-Aufgaben. ${userName()} bekommt ausschließlich Denkübungen wie Sprichwörter, Kopfrechnen, Wortspiele und Bilder-Quiz.`;
   } else if (dementiaStage <= 5) {
     text = `<strong>Leichtes Stadium (${dementiaStage}/10):</strong> Schwerpunkt Gehirnjogging — Personen-Bilder erscheinen sehr selten, etwa jede 15. Aufgabe.`;
   } else if (dementiaStage <= 7) {
@@ -3920,6 +4063,10 @@ async function verifyTaskImages(task) {
 }
 
 async function nextTask() {
+  // Tap-Highlight + Focus von vorherigem Button entfernen
+  if (document.activeElement && document.activeElement.blur) {
+    document.activeElement.blur();
+  }
   answered = false;
   document.getElementById('taskFeedback').textContent = '\u00A0';
   document.getElementById('taskFeedback').className = 'feedback';
@@ -4047,6 +4194,10 @@ async function nextTask() {
       btn.onclick = () => answerTask(btn, opt);
       optsEl.appendChild(btn);
     });
+    // Aktiv-State von vorheriger Aufgabe löschen — Mobile Safari merkt sich Tap-Highlight
+    if (document.activeElement && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
   }
   renderProgress();
   checkAutoRefill();
@@ -4085,7 +4236,7 @@ function answerTask(btn, choice) {
   if (isCorrect || isMemoryShow) {
     btn.classList.add('correct');
     if (!isMemoryShow) {
-      fb.textContent = pickRandom(['Wunderbar — das stimmt.','Sehr gut!','Genau richtig.','Bravo, Karl!']);
+      fb.textContent = pickRandom(['Wunderbar — das stimmt.','Sehr gut!','Genau richtig.',`Bravo, ${userName()}!`]);
       fb.className = 'feedback good';
       recordAnswer(currentTaskMeta.type, true, currentTask);
     }

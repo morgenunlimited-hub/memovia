@@ -301,10 +301,12 @@
   .image-grid .img-tile .label { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,.7)); color: white; padding: 16px 8px 8px; font-size: 14px; font-weight: 500; font-family: 'Fraunces', serif; }
   .options { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 540px; margin: 0 auto; }
   @media (max-width: 540px) { .options { gap: 10px; } }
-  .option-btn { padding: 22px 18px; border: 2px solid var(--line); border-radius: 14px; background: var(--bg); font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; color: var(--ink); cursor: pointer; transition: all .2s; min-height: 80px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.25; word-break: break-word; }
+  .option-btn { padding: 22px 18px; border: 2px solid var(--line); border-radius: 14px; background: var(--bg); font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; color: var(--ink); cursor: pointer; transition: all .2s; min-height: 80px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.25; word-break: break-word; -webkit-tap-highlight-color: transparent; outline: none; }
   .option-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .option-btn.correct { border-color: var(--green); background: var(--green-soft); color: var(--green); }
-  .option-btn.wrong { border-color: var(--accent); background: #f8e0db; color: var(--accent); }
+  .option-btn:focus, .option-btn:focus-visible { outline: none; border-color: var(--line); }
+  .option-btn:active { border-color: var(--accent); }
+  .option-btn.correct { border-color: var(--green) !important; background: var(--green-soft) !important; color: var(--green) !important; }
+  .option-btn.wrong { border-color: var(--accent) !important; background: #f8e0db !important; color: var(--accent) !important; }
   @media (max-width: 540px) {
     .option-btn { padding: 16px 10px; font-size: 17px; min-height: 70px; border-radius: 12px; }
   }
@@ -1074,8 +1076,8 @@
     </div>
   </main>
 </div>
-<script src="images.js?v=20260519m"></script>
-<script src="app.js?v=20260519m"></script>
+<script src="images.js?v=20260519n"></script>
+<script src="app.js?v=20260519n"></script>
 
 <!-- Notfall-Auth-Handler: registriert Click-Listener für Auth-Buttons.
      Funktioniert auch wenn app.js gerade noch lädt. -->
